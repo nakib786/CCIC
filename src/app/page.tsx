@@ -6,6 +6,7 @@ import BannerRipple from "@/components/BannerRipple";
 import HomeContactForm from "@/components/HomeContactForm";
 import { InstagramIcon } from "@/components/SocialIcons";
 import { getBoardMembers, getDonationTotal } from "@/lib/wix";
+import { getTodayPrayerTimes } from "@/lib/prayerTimes";
 import BoardGrid from "@/components/BoardGrid";
 
 const FAQ_ITEMS = [
@@ -41,6 +42,7 @@ const QUOTES = [
 export default async function HomePage() {
   const board = await getBoardMembers().catch(() => []);
   const donation = await getDonationTotal().catch(() => null);
+  const prayerTimes = getTodayPrayerTimes();
   return (
     <>
       {/* ===== Banner ===== */}
@@ -108,7 +110,7 @@ export default async function HomePage() {
               <div className="inner-column">
                 <div className="sec-title mb-40">
                   <span className="sub-title section-eyebrow">Welcome to CCIC</span>
-                  <div className="h2 title">Serving the Williams Lake<br />Muslim Community</div>
+                  <div className="h2 title">Serving the Williams Lake <br /> Muslim Community</div>
                   <p className="text mt-20">
                     The Central Cariboo Islamic Center (CCIC) — a chapter of the BC Muslim Association — is
                     wholeheartedly dedicated to fostering a sense of unity, support and understanding among Muslims
@@ -235,14 +237,20 @@ export default async function HomePage() {
         </div>
         <div className="outer-box">
           <div className="row justify-content-center">
-            {["Fajr", "Zuhr", "Asr", "Maghrib", "Isha"].map((name) => (
+            {[
+              { name: "Fajr", time: prayerTimes.fajr },
+              { name: "Zuhr", time: prayerTimes.dhuhr },
+              { name: "Asr", time: prayerTimes.asr },
+              { name: "Maghrib", time: prayerTimes.maghrib },
+              { name: "Isha", time: prayerTimes.isha },
+            ].map(({ name, time }) => (
               <div className="col-lg-4 col-md-6" key={name}>
                 <div className="time-block">
                   <div className="icon">
                     <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M25.02 15.299c0-5.268-4.269-9.548-9.526-9.548s-9.526 4.28-9.526 9.548c0 .667.069 1.311.195 1.944-1.882.506-3.707 1.161-5.474 1.978.172.552.378 1.081.608 1.599C3.73 26.227 9.147 30 15.46 30c6.312 0 11.741-3.773 14.163-9.191.229-.518.436-1.059.608-1.611-1.756-.805-3.569-1.449-5.429-1.955.126-.621.195-1.277.195-1.944h.023Z" /></svg>
                     <div className="h5 title">{name}</div>
                   </div>
-                  <div className="content"><div className="h6 title">Announced at the masjid</div></div>
+                  <div className="content"><div className="h6 title">{time}</div></div>
                 </div>
               </div>
             ))}
@@ -260,11 +268,11 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="prayer-note">
-            <div className="h6 title">Exact adhan &amp; iqamah times are posted at the masjid and updated regularly on our social pages</div>
+            <div className="h6 title">Adhan times above are calculated daily for Williams Lake — iqamah (congregation start) is a few minutes after and is posted at the masjid and on our social pages</div>
             <p className="text mb-0">
               Follow <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">@ccic_bcma on Instagram</a> or{" "}
               <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">Williams Lake Muslims on Facebook</a>, or{" "}
-              <a href="mailto:cariboo.secretary@thebcma.com">email us</a> for the current schedule.
+              <a href="mailto:cariboo.secretary@thebcma.com">email us</a> for the exact iqamah schedule.
             </p>
           </div>
         </div>
