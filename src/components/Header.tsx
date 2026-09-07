@@ -20,6 +20,11 @@ function isCurrent(pathname: string, href: string) {
 }
 
 function NavList({ pathname, onLinkClick }: { pathname: string; onLinkClick?: () => void }) {
+  // Desktop reveals this submenu on :hover (theme.css), but the mobile
+  // off-canvas menu has no hover and relies on tapping the .dropdown-btn
+  // chevron — the original theme wires that up with jQuery, which this
+  // React rebuild never ported, so the submenu had no way to open on mobile.
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   return (
     <ul className="navigation clearfix">
       {NAV_LINKS.map((link) => (
@@ -28,12 +33,17 @@ function NavList({ pathname, onLinkClick }: { pathname: string; onLinkClick?: ()
         </li>
       ))}
       <li className="dropdown">
-        <a href="#">Resources</a>
-        <ul>
+        <a href="#" onClick={(e) => e.preventDefault()}>Resources</a>
+        <ul style={{ display: resourcesOpen ? "block" : undefined }}>
           <li><a href="http://quran.williamslakemuslims.ca" target="_blank" rel="noopener noreferrer">Qur&apos;an Recitations</a></li>
           <li><Link href="/about/#arabic-classes" onClick={onLinkClick}>Arabic Classes</Link></li>
         </ul>
-        <div className="dropdown-btn"><i className="fa fa-angle-down"></i></div>
+        <div
+          className={`dropdown-btn${resourcesOpen ? " active" : ""}`}
+          onClick={() => setResourcesOpen((open) => !open)}
+        >
+          <i className="fa fa-angle-down"></i>
+        </div>
       </li>
       <li className={isCurrent(pathname, "/contact/") ? "current" : ""}>
         <Link href="/contact/" onClick={onLinkClick}>Contact</Link>

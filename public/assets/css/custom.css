@@ -8,9 +8,23 @@
 .footer-one .logo a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: #fff;
   border-radius: 12px;
   padding: 6px 10px;
+}
+/* theme.css fixes .main-header .logo to a hardcoded 192px width (sized for
+   the original template's own wide logo image); the actual BCMA logo is
+   square, so it was being squashed to fill that width while separately
+   capped to a short max-height, stretching it instead of scaling it. Width
+   auto + object-fit: contain lets each logo scale within its box keeping
+   its real aspect ratio instead of being forced to fill a mismatched one. */
+.logo-box .logo img,
+.sticky-header .logo img,
+.mobile-menu .nav-logo img,
+.footer-one .logo img {
+  width: auto;
+  object-fit: contain;
 }
 .logo-box .logo img { max-height: 54px; }
 .sticky-header .logo img { max-height: 40px; }
@@ -19,6 +33,18 @@
 
 /* ---- Header contact widget: no fabricated phone number, address + email ---- */
 .contact-widget a { white-space: nowrap; }
+
+/* ---- Contact info-bar (footer strip email/social/address): a flex item
+   with no min-width defaults to min-width:auto, so an unbreakable string
+   like an email address (no spaces, and browsers don't wrap at ".") refuses
+   to shrink and spills out past the card edge on narrow screens instead of
+   wrapping to a second line. ---- */
+.contact-block .inner-box > div {
+  min-width: 0;
+}
+.contact-block .inner-box .text {
+  overflow-wrap: anywhere;
+}
 
 /* ---- Board / team initials avatars (no stock photos standing in for real people) ---- */
 .team-block-two .avatar-circle {
@@ -275,6 +301,36 @@
   width: 100%;
   display: block;
 }
+/* Below the lg breakpoint the image/content columns stack into one column,
+   so .donation-content becomes the section's full height with nothing left
+   over for the bottom-anchored skyline shape — it ends up overlapping the
+   last lines of text and the progress bar instead of sitting cleanly below
+   them. Desktop's two-column layout doesn't have this problem, so only pad
+   for it once columns stack. */
+@media (max-width: 991.98px) {
+  /* !important because this ties on specificity with the theme's own
+     .pb-100 utility (also a single class) applied to the same element, and
+     needs to win regardless of which one the cascade happens to order last. */
+  .donation-section {
+    padding-bottom: 170px !important;
+  }
+}
+
+/* ---- Hero banner body copy: theme.css whitens the sub-title and heading
+   over the dark hero image but leaves the paragraph on the default dark
+   .text color, making it unreadable against the photo. ---- */
+.banner-section .outer-box .banner-content .text {
+  color: var(--theme-color-white);
+}
+
+/* ---- Hero banner top gap: theme.css's 100px margin-top assumes the
+   original template's transparent header sits absolutely positioned over
+   the hero image. This header is static (position: relative, ~109px tall)
+   and sits above it in normal flow, so that 100px became a second, pure
+   white gap stacked underneath the header instead of clearance for it. ---- */
+.banner-section {
+  margin-top: 24px;
+}
 
 /* ---- Hero banner mouse-ripple effect (jQuery Ripples plugin) ---- */
 .banner-section .outer-box .sec-bg.banner-ripple canvas {
@@ -282,6 +338,34 @@
   inset: 0;
   width: 100%;
   height: 100%;
+}
+
+/* ---- Scroll-to-top button: theme.css centers the icon vertically via
+   line-height but never horizontally (no flex/text-align), so the caret
+   sits pinned to the left edge of the circle instead of in the middle.
+   Redone as a flex-centered navy circle with a gold hover state matching
+   the site's brand palette, plus a lift/scale on hover instead of the
+   flat color swap. ---- */
+.back-to-top {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  line-height: normal;
+  background-color: var(--theme-color3);
+  color: var(--theme-color-white);
+  font-size: 16px;
+  box-shadow: 0 6px 18px rgba(10, 47, 92, 0.35);
+}
+.back-to-top:hover {
+  background-color: var(--theme-color1);
+  color: var(--headings-color);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(10, 47, 92, 0.4);
+}
+.back-to-top.show:hover {
+  transform: translateY(-4px);
 }
 
 /* ---- Utility ---- */
