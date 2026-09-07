@@ -19,18 +19,6 @@
     "WIX_SITE_ID": "235e2856-9df4-48ff-ba42-25363a058856",
     "WIX_CLIENT_ID": "39efb562-774e-4ce3-ab40-58d2b9074599"
   },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "ccic-db",
-      "database_id": "bda24e99-3f07-4a0a-a8fc-61793d71ba0e"
-    }
-  ],
-  "send_email": [
-    {
-      "name": "EMAIL"
-    }
-  ],
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   }
