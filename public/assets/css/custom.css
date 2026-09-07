@@ -34,6 +34,25 @@
   font-size: 42px;
   letter-spacing: 1px;
 }
+/* ---- Board / team real photos: theme.css never gives .inner-box .image a
+   fixed size (it expected the missing team-mask-bg.png to define the shape),
+   so a portrait-cropped source photo rendered as a tall oval/rectangle next
+   to perfectly circular photos from square sources — the "inconsistent card
+   size" look. Forcing the same 1:1 frame as the initials avatar above makes
+   every member photo, whatever its original aspect ratio, crop into the same
+   uniform circle. ---- */
+.team-block-two .inner-box .image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.team-block-two .inner-box .image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 /* ---- Prayer-times honesty card (real iqamah times are posted on social,
    not invented here) ---- */
@@ -115,6 +134,71 @@
 }
 .lightbox-close:hover { background: var(--theme-color1); color: #14213A; }
 
+/* ---- Donate page fundraiser progress bar: theme.css only styles
+   .donation-progress/.progress-track/.fund-raise/.fund-goal when nested
+   under .causes-block .inner-block .content-box (a card widget), but this
+   page places the same classes directly in the section — so none of it
+   matched and the raised/goal figures rendered as bare unstyled text. Also
+   dropping the theme's own hardcoded loadProgress animation (which snaps
+   the bar to a fixed 70%) since the width here is a real percentage set
+   inline per member. ---- */
+.donation-bar { margin: 30px 0 40px; }
+.donation-progress { width: 100%; }
+.donation-progress .progress-track {
+  background: rgba(20, 78, 151, 0.12);
+  border-radius: 50px;
+  height: 7px;
+  position: relative;
+  width: 100%;
+}
+.donation-progress .progress-fill {
+  background: var(--theme-color3);
+  border-radius: 50px;
+  height: 100%;
+  position: relative;
+  transition: width 0.6s ease;
+}
+.donation-progress .progress-thumb {
+  background: var(--theme-color-white);
+  border: 2px solid var(--theme-color1);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 11px;
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 11px;
+}
+.donation-info {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+.donation-info .fund-raise,
+.donation-info .fund-goal {
+  align-items: center;
+  display: flex;
+  gap: 11.5px;
+}
+.donation-info .fund-raise .icon,
+.donation-info .fund-goal .icon {
+  color: var(--theme-color1);
+  font-size: 20px;
+}
+.donation-info .fund-raise .text,
+.donation-info .fund-goal .text {
+  color: var(--text-color);
+}
+.donation-info .fund-raise .text .value,
+.donation-info .fund-goal .text .value {
+  font-weight: 700;
+  color: var(--theme-color3);
+}
+
 /* ---- Ways to give cards (replaces fake fundraiser progress bars) ---- */
 .give-block .content-box .tag { display: inline-flex; align-items: center; gap: 8px; }
 .give-block .content-box .tag i { color: var(--theme-color1); }
@@ -134,6 +218,17 @@
 .copy-chip:hover { background: var(--theme-color3); color: #fff; }
 .copy-chip.copied { background: var(--theme-color1); color: #14213A; border-color: var(--theme-color1); }
 
+/* ---- The about-section's decorative ::before oval is a 1905x1327px ellipse
+   that pokes 496px above the section's own box — fine on the home page
+   where it peeks over the bottom of the tall hero, but the About page reuses
+   the exact same about-section directly after the much shorter .page-banner,
+   so that fixed -496px overlap swallowed the banner's whole "About Us"
+   heading and breadcrumb under a solid white dome. Shrinking the overlap
+   only in that context. ---- */
+.page-banner + .about-section:before {
+  top: -40px !important;
+}
+
 /* ---- Page (inner) banner ---- */
 .page-banner {
   position: relative;
@@ -149,6 +244,37 @@
 
 /* ---- FAQ note credit ---- */
 .section-eyebrow { color: var(--theme-color3); font-weight: 700; letter-spacing: .5px; }
+
+/* ---- Donation CTA decorative background: this section's .sec-bg/.sec-shape
+   markup doesn't match any theme.css nesting (the theme only styles these
+   classes under other donation-section variants' own .outer-container), so
+   the pattern-texture and skyline-silhouette images rendered inline as huge
+   unstyled blocks — the "wall of empty space" below the Building Fund CTA
+   on both the home page and the Donate page. Pinning them as an absolute
+   background layer instead. ---- */
+.donation-section > .sec-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+.donation-section > .sec-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.donation-section > .sec-shape {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.donation-section > .sec-shape img {
+  width: 100%;
+  display: block;
+}
 
 /* ---- Hero banner mouse-ripple effect (jQuery Ripples plugin) ---- */
 .banner-section .outer-box .sec-bg.banner-ripple canvas {
@@ -183,10 +309,8 @@
    shape, with no border-radius fallback at all — so once masking was
    disabled they rendered as bare hard-edged rectangles. Restoring a clean
    rounded-rect "frame" so every photo across the site sits inside a shape,
-   not a raw edge-to-edge image. ---- */
-.about-section .image-column .inner-column .image-box .image,
-.about-section .image-column .inner-column .image-box-two .image,
-.banner-section .outer-box .banner-image .image,
+   not a raw edge-to-edge image. Only applies to spots with no matching
+   halo/shape asset to build a real mask from (see restore block below). ---- */
 .donation-section .image-column .inner-column .image {
   border-radius: 30px;
   overflow: hidden;
@@ -208,4 +332,72 @@
 * {
   mask-image: none !important;
   -webkit-mask-image: none !important;
+}
+
+/* ---- Restore the real organic photo frames the theme intended, for the
+   handful of spots where we still have the matching silhouette: each of
+   these "-bg"/"-shape" PNGs is the exact halo drawn behind the photo, so
+   reusing it as the photo's own clip-mask makes the picture fill that same
+   lantern/dome outline instead of sitting on top of it as a bare rectangle
+   (this was the "pictures overlaying the frame" look in the hero and about
+   sections). Must win over the "* { mask-image: none }" reset above purely
+   on selector specificity, since both sides carry !important. ---- */
+.banner-section .outer-box .banner-image .image,
+.about-section .image-column .inner-column .image-box .image,
+.about-section .image-column .inner-column .image-box-two .image,
+.service-block .inner-box .image-box .image {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  /* The halo PNGs are a colour gradient, not flat white — without forcing
+     alpha mode the browser masks by luminance, fading the photo out toward
+     the darker end of the gradient instead of giving a clean, fully-opaque
+     cutout. */
+  mask-mode: alpha !important;
+  -webkit-mask-mode: alpha !important;
+  mask-type: alpha !important;
+}
+.banner-section .outer-box .banner-image .image {
+  /* banner-image-bg.png (used as the halo behind the photo) bakes a soft
+     vertical alpha gradient into the glow, so using it directly as a mask
+     fades the photo out near the top; banner-image-mask.png is a hard-alpha
+     binarised version of the same silhouette generated from it. */
+  mask-image: url(../images/banner-image-mask.png) !important;
+  -webkit-mask-image: url(../images/banner-image-mask.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-position: top center !important;
+  -webkit-mask-position: top center !important;
+}
+.about-section .image-column .inner-column .image-box .image {
+  mask-image: url(../images/about-image1-shape.png) !important;
+  -webkit-mask-image: url(../images/about-image1-shape.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
+}
+.about-section .image-column .inner-column .image-box-two .image {
+  mask-image: url(../images/about-image2-shape.png) !important;
+  -webkit-mask-image: url(../images/about-image2-shape.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
+}
+.service-block .inner-box .image-box .image {
+  mask-image: url(../images/service-image-bg.png) !important;
+  -webkit-mask-image: url(../images/service-image-bg.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
 }
