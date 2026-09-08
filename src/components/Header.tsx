@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
 
 const NAV_LINKS = [
@@ -11,6 +12,7 @@ const NAV_LINKS = [
   { href: "/about/", label: "About" },
   { href: "/events/", label: "Events" },
   { href: "/gallery/", label: "Gallery" },
+  { href: "/media/", label: "Media" },
   { href: "/donate/", label: "Donate" },
 ];
 
@@ -57,6 +59,9 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 200);
@@ -115,62 +120,72 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      <div className="mobile-menu">
-        <div className="menu-backdrop" onClick={() => setMobileOpen(false)}></div>
-        <nav className="menu-box">
-          <div className="upper-box">
-            <div className="nav-logo">
-              <Link href="/"><Image src="/assets/images/BCMA_Logo.jpg" alt="BCMA logo" width={160} height={160} /></Link>
-            </div>
-            <div className="close-btn" onClick={() => setMobileOpen(false)}><i className="icon fa fa-times"></i></div>
-          </div>
-          <NavList pathname={pathname} onLinkClick={() => setMobileOpen(false)} />
-          <ul className="contact-list-one">
-            <li>
-              <i className="icon fa-solid fa-envelope"></i>
-              <span className="title">Send Email</span>
-              <div className="text"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></div>
-            </li>
-          </ul>
-          <ul className="social-links">
-            <li>
-              <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">
-                <FacebookIcon className="icon" />
-              </a>
-            </li>
-            <li>
-              <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">
-                <InstagramIcon className="icon" />
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-
-      {/* Sticky Header */}
-      <div className={`sticky-header${scrolled ? " fixed-header" : ""}`}>
-        <div className="auto-container">
-          <div className="inner-container">
-            <div className="sticky-logo-box">
-              <div className="logo">
+      {/* .mobile-menu and .sticky-header are `position: fixed`, which only
+          stays pinned to the viewport if nothing between them and <body>
+          carries a transform. GSAP ScrollSmoother puts one on
+          #smooth-content (an ancestor of <Header>, so it can stay in normal
+          document flow and push page content down), so both portal straight
+          to <body> to escape it — same fix as the gallery lightbox. */}
+      {mounted && createPortal(
+        <div className="mobile-menu">
+          <div className="menu-backdrop" onClick={() => setMobileOpen(false)}></div>
+          <nav className="menu-box">
+            <div className="upper-box">
+              <div className="nav-logo">
                 <Link href="/"><Image src="/assets/images/BCMA_Logo.jpg" alt="BCMA logo" width={160} height={160} /></Link>
               </div>
-              <Link href="/" className="sticky-header-name">Central Cariboo Islamic Center</Link>
+              <div className="close-btn" onClick={() => setMobileOpen(false)}><i className="icon fa fa-times"></i></div>
             </div>
-            <div className="nav-outer">
-              <nav className="main-menu">
-                <div className="navbar-collapse show collapse clearfix">
-                  <NavList pathname={pathname} />
+            <NavList pathname={pathname} onLinkClick={() => setMobileOpen(false)} />
+            <ul className="contact-list-one">
+              <li>
+                <i className="icon fa-solid fa-envelope"></i>
+                <span className="title">Send Email</span>
+                <div className="text"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></div>
+              </li>
+            </ul>
+            <ul className="social-links">
+              <li>
+                <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">
+                  <FacebookIcon className="icon" />
+                </a>
+              </li>
+              <li>
+                <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">
+                  <InstagramIcon className="icon" />
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>,
+        document.body
+      )}
+
+      {mounted && createPortal(
+        <div className={`sticky-header${scrolled ? " fixed-header" : ""}`}>
+          <div className="auto-container">
+            <div className="inner-container">
+              <div className="sticky-logo-box">
+                <div className="logo">
+                  <Link href="/"><Image src="/assets/images/BCMA_Logo.jpg" alt="BCMA logo" width={160} height={160} /></Link>
                 </div>
-              </nav>
-              <div className="mobile-nav-toggler" onClick={() => setMobileOpen(true)}>
-                <span className="icon lnr-icon-bars"><i className="fas fa-bars"></i></span>
+                <Link href="/" className="sticky-header-name">Central Cariboo Islamic Center</Link>
+              </div>
+              <div className="nav-outer">
+                <nav className="main-menu">
+                  <div className="navbar-collapse show collapse clearfix">
+                    <NavList pathname={pathname} />
+                  </div>
+                </nav>
+                <div className="mobile-nav-toggler" onClick={() => setMobileOpen(true)}>
+                  <span className="icon lnr-icon-bars"><i className="fas fa-bars"></i></span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
     </header>
   );
 }

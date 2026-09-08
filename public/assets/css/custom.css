@@ -1,5 +1,14 @@
 /* Central Cariboo Islamic Center — additions on top of the recoloured theme */
 
+/* ---- GSAP ScrollSmoother wrapper/content: let the plugin's own inline
+   styles (position/transform) drive layout instead of any ancestor
+   `overflow: hidden` clipping the translated content — same override the
+   original Islamus theme ships. ---- */
+#smooth-wrapper,
+#smooth-content {
+  overflow: visible;
+}
+
 /* ---- Header logo (BCMA logo sits on a white plate so it reads on dark
    mobile-menu / footer backgrounds) ---- */
 .logo-box .logo a,
@@ -181,7 +190,7 @@
   border-radius: 16px;
   padding: 24px 28px;
   text-align: center;
-  max-width: 780px;
+  max-width: 920px;
   margin: 40px auto 0;
 }
 .prayer-note .h6 { margin-bottom: 8px; }
@@ -362,14 +371,25 @@
    length varies (PayPal's card carries an extra sentence + button that the
    Cash/Cheque card doesn't), so the cards still ended up different heights.
    Filling the stretched column and pinning each card's CTA to the bottom
-   keeps all three level regardless of copy length. ---- */
+   keeps all three level regardless of copy length.
+   theme.css's own card-to-card spacing is a margin-bottom on .inner-block —
+   but once .inner-block is told height:100% of the stretched column, that
+   margin is measured outside a box that's already sized to fill the column
+   exactly, so it has nowhere to go: on desktop the row's tallest card still
+   reserves room for it, but every stacked-single-column mobile card has
+   nothing beside it forcing that reservation, so the margin collapses away
+   and the cards touch. Moving the gap onto .give-block's own padding-bottom
+   (part of its fixed, stretched height) instead of a margin outside it
+   keeps the same visual spacing without it ever being absorbed. ---- */
 .give-block {
   height: 100%;
+  padding-bottom: 30px;
 }
 .give-block .inner-block {
   display: flex;
   flex-direction: column;
   height: 100%;
+  margin-bottom: 0;
 }
 .give-block .image-box {
   height: 235px;
@@ -466,49 +486,27 @@
 /* ---- FAQ note credit ---- */
 .section-eyebrow { color: var(--theme-color3); font-weight: 700; letter-spacing: .5px; }
 
-/* ---- Donation CTA decorative background: this section's .sec-bg/.sec-shape
-   markup doesn't match any theme.css nesting (the theme only styles these
-   classes under other donation-section variants' own .outer-container), so
-   the pattern-texture and skyline-silhouette images rendered inline as huge
-   unstyled blocks — the "wall of empty space" below the Building Fund CTA
-   on both the home page and the Donate page. Pinning them as an absolute
-   background layer instead. ---- */
-.donation-section > .sec-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-}
-.donation-section > .sec-bg img {
+/* ---- Donation CTA rounded card: .donation-section's markup was missing
+   the .outer-container wrapper theme.css actually styles (max-width, gray
+   background, 30px rounded corners — the same "card" treatment the hero
+   banner's .outer-box gets), so the whole section rendered edge-to-edge
+   instead of as a contained card, and its .sec-bg/.sec-shape decorations
+   (styled only when nested inside that wrapper) fell back to being huge
+   unstyled inline blocks. Now that the wrapper is in the markup, theme.css
+   positions .sec-bg/.sec-shape itself — only their images still need sizing,
+   since theme.css never styled the <img> tags inside those wrappers. ---- */
+.donation-section .outer-container .sec-bg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.donation-section > .sec-shape {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  pointer-events: none;
-}
-.donation-section > .sec-shape img {
-  width: 100%;
+/* Stretching this to the container's full width (matching .sec-bg's own
+   full-cover sizing) blew the skyline silhouette up to span the entire
+   section — it's a small corner accent in the original design, sized off
+   its own 382px-native width instead of the section's. */
+.donation-section .outer-container .sec-shape img {
   display: block;
-}
-/* Below the lg breakpoint the image/content columns stack into one column,
-   so .donation-content becomes the section's full height with nothing left
-   over for the bottom-anchored skyline shape — it ends up overlapping the
-   last lines of text and the progress bar instead of sitting cleanly below
-   them. Desktop's two-column layout doesn't have this problem, so only pad
-   for it once columns stack. */
-@media (max-width: 991.98px) {
-  /* !important because this ties on specificity with the theme's own
-     .pb-100 utility (also a single class) applied to the same element, and
-     needs to win regardless of which one the cascade happens to order last. */
-  .donation-section {
-    padding-bottom: 170px !important;
-  }
+  width: 440px;
 }
 
 /* ---- Hero banner body copy: theme.css whitens the sub-title and heading
@@ -595,16 +593,60 @@
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(10, 47, 92, 0.18);
 }
+/* service-item-mask.png is another mask asset recovered from the theme
+   vendor's own demo (like time-item-mask.png above) — gives the Programs &
+   Services cards their real arched "mihrab" silhouette instead of the plain
+   rounded-rectangle fallback. Wins over the "* { mask-image: none }" reset
+   purely on selector specificity, same trick as the other restores below. */
 .service-block .inner-box {
-  border-radius: 24px;
+  mask-image: url(../images/mask/service-item-mask.png) !important;
+  -webkit-mask-image: url(../images/mask/service-item-mask.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: cover !important;
+  -webkit-mask-size: cover !important;
+  mask-position: top !important;
+  -webkit-mask-position: top !important;
+}
+
+/* ---- Programs & Services cards: theme.css only reveals the mosque-skyline
+   pattern (.item-shape) at the bottom of each card on :hover. Show it all
+   the time instead of just on hover. ---- */
+.service-block .inner-box .item-shape {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* ---- Scroll-reveal (ScrollReveal.tsx): the vendor demo slides each service
+   card in from the right with a slight rotation via a GSAP ScrollTrigger
+   pin, which needs a real scroll library to reproduce faithfully. This is a
+   lighter approximation with the same slide+rotate feel, driven by a plain
+   IntersectionObserver so it plays once as each card enters the viewport. */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateX(60px) rotate(-6deg);
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+.scroll-reveal.is-revealed {
+  opacity: 1;
+  transform: translateX(0) rotate(0deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ---- Critical fix: theme.css references ~25 decorative CSS mask-image blobs
    (images/mask/*.png, images/resource/*.png, images/bg/*.png) that were never
    part of the saved template download. An element masked by a missing image
    renders fully invisible (about images, service/time/team cards, donation
-   images, etc.) — so mask-image is disabled globally here. Nothing in this
-   rebuild relies on the organic blob-crop look; cards keep their border-radius. */
+   images, etc.) — so mask-image is disabled globally here. Spots where we've
+   since recovered the real mask asset from the vendor's own demo (service,
+   time cards, donation image) re-enable it below with a more specific
+   selector; everything else falls back to plain border-radius cards. */
 * {
   mask-image: none !important;
   -webkit-mask-image: none !important;
@@ -621,7 +663,8 @@
 .banner-section .outer-box .banner-image .image,
 .about-section .image-column .inner-column .image-box .image,
 .about-section .image-column .inner-column .image-box-two .image,
-.service-block .inner-box .image-box .image {
+.service-block .inner-box .image-box .image,
+.donation-section .donation-image {
   border-radius: 0 !important;
   box-shadow: none !important;
   overflow: visible !important;
@@ -667,9 +710,36 @@
   mask-position: center !important;
   -webkit-mask-position: center !important;
 }
+/* The homepage "Support CTA" banner's donation-image-mask.png (theme.css
+   line ~7619) was never part of the template download either, same as the
+   about-image shapes above — donation-image-mask.png is about-image1-shape.png
+   rotated 90°, since this theme reuses one lantern silhouette (portrait for
+   the about page, landscape here) across sections. The container is sized to
+   the mask's own near-square aspect ratio so mask-size: contain shows the
+   full lantern outline instead of a sliver of it inside a much wider box. */
+.donation-section .donation-image {
+  aspect-ratio: 584 / 591;
+  margin: 0 auto;
+  max-width: 480px;
+  position: relative;
+  mask-image: url(../images/mask/donation-image-mask.png) !important;
+  -webkit-mask-image: url(../images/mask/donation-image-mask.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: contain !important;
+  -webkit-mask-size: contain !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
+}
+.donation-section .donation-image img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
 .service-block .inner-box .image-box .image {
-  mask-image: url(../images/service-image-bg.png) !important;
-  -webkit-mask-image: url(../images/service-image-bg.png) !important;
+  mask-image: url(../images/mask/service-item-image-mask.png) !important;
+  -webkit-mask-image: url(../images/mask/service-item-image-mask.png) !important;
   mask-repeat: no-repeat !important;
   -webkit-mask-repeat: no-repeat !important;
   mask-size: contain !important;
@@ -801,6 +871,39 @@
   --theme-color1: #C7DC49;
   --theme-color2: #0C2F25;
   --theme-color3: #10551F;
+}
+
+/* .about-section:before is the big circular gradient shape behind the
+   "Serving the Williams Lake Muslim Community" heading — nudge it down 2cm
+   (~76px) from theme.css's defaults at each breakpoint that sets `top`. */
+.about-section:before {
+  top: -420px;
+}
+@media (max-width: 1399.98px) {
+  .about-section:before {
+    top: -341px;
+  }
+}
+
+/* time-bg.png (the dome/arch mihrab shape behind the Salah cards) sits too
+   low by default via theme.css's `bottom: -25px` — nudge it up ~4-5cm
+   (~170px), back down 2cm (~76px), then up another 1cm (~38px), while
+   keeping the existing horizontal centering transform. */
+.time-section .sec-bg {
+  bottom: 107px;
+}
+
+/* time-section (Daily Prayers) had a lot of empty space above and below the
+   cards from theme.css's padding-top: 150px / padding-bottom: 100px (and
+   padding-top: 120px on the <1499.98px variant) — tighten both. */
+.time-section {
+  padding-top: 80px;
+  padding-bottom: 50px;
+}
+@media (max-width: 1499.98px) {
+  .time-section {
+    padding-top: 70px;
+  }
 }
 
 /* ---- Contact info bar (homepage + contact page): the email/address text

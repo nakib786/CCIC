@@ -10,6 +10,21 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "static.wixstatic.com" }],
   },
   trailingSlash: true,
+  async headers() {
+    return [
+      {
+        // Advertise machine-readable discovery docs via the HTTP Link
+        // header so agents that never parse HTML can still find them.
+        source: "/:path*",
+        headers: [
+          {
+            key: "Link",
+            value: '</llms.txt>; rel="llms.txt", </sitemap.xml>; rel="sitemap"',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

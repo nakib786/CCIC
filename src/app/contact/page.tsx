@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import HomeContactForm from "@/components/HomeContactForm";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
 import { getContactFormFields } from "@/lib/wix";
@@ -7,15 +8,17 @@ import { getContactFormFields } from "@/lib/wix";
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with the Central Cariboo Islamic Center in Williams Lake, BC.",
+  alternates: { canonical: "/contact/" },
 };
 
 export default async function ContactPage() {
   const contactFields = await getContactFormFields().catch(() => undefined);
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Contact" }]} />
       <section className="page-banner">
         <div className="container">
-          <div className="h1">Contact Us</div>
+          <h1 className="h1">Contact Us</h1>
           <div className="breadcrumb-nav"><Link href="/">Home</Link> <i className="fa-solid fa-angle-right"></i> Contact</div>
         </div>
       </section>
@@ -23,12 +26,12 @@ export default async function ContactPage() {
       <section className="contact-section pt-120 pb-120">
         <div className="outer-container">
           <div className="container">
-            <div className="row g-0">
+            <div className="row g-4">
               <div className="col-lg-5 content-column">
                 <div className="inner-column">
                   <div className="sec-title mb-40">
                     <span className="sub-title section-eyebrow">Get In Touch</span>
-                    <div className="h2 title">We&apos;d Love to Hear From You</div>
+                    <h2 className="h2 title">We&apos;d Love to Hear From You</h2>
                   </div>
                   <div className="map-image">
                     <iframe

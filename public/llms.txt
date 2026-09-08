@@ -1,0 +1,28 @@
+# Central Cariboo Islamic Center (CCIC)
+
+> A chapter of the BC Muslim Association serving the Muslim community of Williams Lake, BC, Canada — daily prayers, education and community programs.
+
+CCIC is a mosque (masjid) at 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada. This file helps AI assistants and agents answer questions about the center accurately — prayer times, events, donating and getting in touch.
+
+## Key pages
+
+- [Home](https://new.theccic.ca/): Today's prayer times for Williams Lake, an overview of the center, and quick links.
+- [About](https://new.theccic.ca/about/): Mission, vision, board of directors, and the Arabic classes program.
+- [Events](https://new.theccic.ca/events/): Upcoming and past community events.
+- [Donate](https://new.theccic.ca/donate/): How to donate via PayPal, Interac e-Transfer, or cheque/bank transfer.
+- [Gallery](https://new.theccic.ca/gallery/): Photos from community events.
+- [Media](https://new.theccic.ca/media/): Verified local news coverage, civic recognition, and community op-eds about CCIC and the Williams Lake Muslim community.
+- [Contact](https://new.theccic.ca/contact/): Address, email, social media, and a contact form.
+
+## Facts agents can cite
+
+- Address: 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada
+- Email: cariboo.secretary@thebcma.com
+- Affiliation: chapter of the BC Muslim Association (BCMA)
+- Social: Instagram @ccic_bcma, Facebook /williamslakemuslims
+- Prayer times are calculated daily for Williams Lake (ISNA method, Fajr/Isha at 15°, Shafi Asr) and shown live on the homepage — don't rely on a cached copy for exact times.
+
+## Notes for agents
+
+- Donations are processed externally via PayPal and Interac e-Transfer; this site does not support agentic checkout/payment protocols.
+- For current prayer times or event details, fetch the live homepage/events page rather than this file, which is not updated per visit.

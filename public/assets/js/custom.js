@@ -108,7 +108,11 @@
         document.body.classList.remove("mobile-menu-visible");
         var headerOffset = 110;
         var top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
-        window.scrollTo({ top: top, behavior: "smooth" });
+        if (typeof ScrollSmoother !== "undefined" && ScrollSmoother.get()) {
+          ScrollSmoother.get().scrollTo(top, true);
+        } else {
+          window.scrollTo({ top: top, behavior: "smooth" });
+        }
       });
     });
   }
@@ -188,7 +192,11 @@
     }, { passive: true });
     btn.addEventListener("click", function (e) {
       e.preventDefault();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (typeof ScrollSmoother !== "undefined" && ScrollSmoother.get()) {
+        ScrollSmoother.get().scrollTo(0, true);
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     });
   }
 })();

@@ -20,6 +20,7 @@ export default function Footer() {
             <li><Link href="/about/">About</Link></li>
             <li><Link href="/events/">Events</Link></li>
             <li><Link href="/gallery/">Gallery</Link></li>
+            <li><Link href="/media/">Media</Link></li>
             <li><Link href="/donate/">Donate</Link></li>
             <li><Link href="/contact/">Contact</Link></li>
           </ul>

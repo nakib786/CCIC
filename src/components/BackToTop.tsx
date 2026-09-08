@@ -17,7 +17,9 @@ export default function BackToTop() {
       className={`back-to-top${show ? " show" : ""}`}
       onClick={(e) => {
         e.preventDefault();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const smoother = window.ScrollSmoother?.get();
+        if (smoother) smoother.scrollTo(0, true);
+        else window.scrollTo({ top: 0, behavior: "smooth" });
       }}
     >
       <i className="fa fa-angle-up"></i>

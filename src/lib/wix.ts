@@ -69,8 +69,15 @@ export type WixEvent = {
   status: "UPCOMING" | "STARTED" | "ENDED" | "CANCELED" | string;
   shortDescription?: string;
   mainImage?: { url: string };
-  location?: { name?: string; address?: { formattedAddress?: string } };
-  dateAndTimeSettings?: { formatted?: { dateAndTime?: string } };
+  location?: { name?: string; locationTbd?: boolean; address?: { formattedAddress?: string } };
+  dateAndTimeSettings?: {
+    formatted?: { dateAndTime?: string };
+    dateAndTimeTbd?: boolean;
+    // ISO 8601 (RFC3339), confirmed against the live Query Events schema —
+    // only present when dateAndTimeTbd is false.
+    startDate?: string;
+    endDate?: string;
+  };
   eventPageUrl?: { base: string; path: string };
 };
 

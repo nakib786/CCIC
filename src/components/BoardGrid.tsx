@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { initials } from "@/lib/format";
 import type { BoardMember } from "@/lib/wix";
 
@@ -23,8 +24,13 @@ export default function BoardGrid({ members }: { members: BoardMember[] }) {
             <div className="inner-box">
               <figure className="image">
                 {m.photoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={m.photoUrl} alt={m.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                  <Image
+                    src={m.photoUrl}
+                    alt={m.name}
+                    fill
+                    sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 25vw"
+                    style={{ objectFit: "cover", borderRadius: "50%" }}
+                  />
                 ) : (
                   <div className="avatar-circle">{initials(m.name)}</div>
                 )}

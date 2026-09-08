@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import GalleryGrid from "@/components/GalleryGrid";
 
 export const metadata: Metadata = {
   title: "Gallery",
   description: "Photos from the Central Cariboo Islamic Center community in Williams Lake, BC.",
+  alternates: { canonical: "/gallery/" },
 };
 
 const IMAGES = [
@@ -25,9 +27,10 @@ const IMAGES = [
 export default function GalleryPage() {
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Gallery" }]} />
       <section className="page-banner">
         <div className="container">
-          <div className="h1">Gallery</div>
+          <h1 className="h1">Gallery</h1>
           <div className="breadcrumb-nav"><Link href="/">Home</Link> <i className="fa-solid fa-angle-right"></i> Gallery</div>
         </div>
       </section>
@@ -37,7 +40,7 @@ export default function GalleryPage() {
           <div className="row justify-content-center mb-50">
             <div className="col-lg-7 text-center">
               <span className="sub-title section-eyebrow">Community Life</span>
-              <div className="h2 title mt-10">A Glimpse of Our Masjid</div>
+              <h2 className="h2 title mt-10">A Glimpse of Our Masjid</h2>
               <p className="text mt-20">
                 More photos from our gatherings and events are posted regularly — follow{" "}
                 <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer" className="text-navy">@ccic_bcma</a> on Instagram or{" "}

@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import ArabicClassesForm from "@/components/ArabicClassesForm";
 import BoardGrid from "@/components/BoardGrid";
+import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import { getBoardMembers } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "About Us",
   description: "Learn about the Central Cariboo Islamic Center's mission, vision, board and Arabic classes program in Williams Lake, BC.",
+  alternates: { canonical: "/about/" },
+};
+
+// Real pixel dimensions of each service icon photo — lets next/image reserve
+// the correct aspect ratio up front (no layout shift) instead of guessing.
+const SERVICE_IMG_SIZE: Record<string, { width: number; height: number }> = {
+  "service-image1.jpg": { width: 183, height: 183 },
+  "service-image2.jpg": { width: 183, height: 180 },
+  "service-image3.jpg": { width: 183, height: 178 },
+  "service-image4.jpg": { width: 183, height: 183 },
 };
 
 const SERVICES = [
@@ -20,9 +32,10 @@ export default async function AboutPage() {
   const board = await getBoardMembers().catch(() => []);
   return (
     <>
+      <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "About" }]} />
       <section className="page-banner">
         <div className="container">
-          <div className="h1">About Us</div>
+          <h1 className="h1">About Us</h1>
           <div className="breadcrumb-nav"><Link href="/">Home</Link> <i className="fa-solid fa-angle-right"></i> About</div>
         </div>
       </section>
@@ -33,11 +46,11 @@ export default async function AboutPage() {
             <div className="col-xl-6 col-lg-9 image-column">
               <div className="inner-column">
                 <div className="image-box">
-                  <figure className="image overlay-anim"><img src="/assets/images/about-image1.jpg" alt="Community" /></figure>
+                  <figure className="image overlay-anim"><Image src="/assets/images/about-image1.jpg" alt="Community" width={552} height={506} sizes="(max-width: 1199px) 90vw, 552px" /></figure>
                   <div className="image-bg"><img src="/assets/images/about-image1-shape.png" alt="" /></div>
                 </div>
                 <div className="image-box image-box-two">
-                  <figure className="image overlay-anim"><img src="/assets/images/service-image1.jpg" alt="Community in prayer" /></figure>
+                  <figure className="image overlay-anim"><Image src="/assets/images/service-image1.jpg" alt="Community in prayer" width={183} height={183} /></figure>
                   <div className="image-bg"><img src="/assets/images/about-image2-shape.png" alt="" /></div>
                 </div>
                 <div className="shape"><img className="animation__arryUpDown" src="/assets/images/about-leaf.png" alt="" /></div>
@@ -47,7 +60,7 @@ export default async function AboutPage() {
               <div className="inner-column">
                 <div className="sec-title mb-40">
                   <span className="sub-title section-eyebrow">Who We Are</span>
-                  <div className="h2 title">A Chapter of the BC Muslim Association</div>
+                  <h2 className="h2 title">A Chapter of the BC Muslim Association</h2>
                   <p className="text mt-20">
                     The Central Cariboo Islamic Center (CCIC) is wholeheartedly dedicated to fostering a sense of unity,
                     support and understanding among Muslims and the wider community in Williams Lake, BC. We provide an
@@ -107,12 +120,12 @@ export default async function AboutPage() {
             <div className="row g-4 align-items-center">
               <div className="col-lg-4 col-md-5">
                 <div className="land-ack-image">
-                  <img src="/assets/images/firstNation.png" alt="Symbols of First Nations heritage — totem pole, tipi, hand drum and inukshuk" />
+                  <Image src="/assets/images/firstNation.png" alt="Symbols of First Nations heritage — totem pole, tipi, hand drum and inukshuk" width={1024} height={1024} sizes="(max-width: 767px) 60vw, 350px" />
                 </div>
               </div>
               <div className="col-lg-8 col-md-7">
                 <span className="sub-title section-eyebrow">In Recognition</span>
-                <div className="h2 title mt-10 mb-20">Land Acknowledgement</div>
+                <h2 className="h2 title mt-10 mb-20">Land Acknowledgement</h2>
                 <p className="text">
                   The Central Cariboo Islamic Center gathers, worships and serves on the traditional and ancestral
                   territory of the Secwepemc (Shuswap) Nation — home to the T&apos;exelcemc (Williams Lake First
@@ -131,18 +144,18 @@ export default async function AboutPage() {
           <div className="container">
             <div className="sec-title text-center mb-50">
               <span className="sub-title section-eyebrow">What We Offer</span>
-              <div className="h2 title">Programs &amp; Community Services</div>
+              <h2 className="h2 title">Programs &amp; Community Services</h2>
             </div>
             <div className="row g-4">
               {SERVICES.map((svc) => (
                 <div className="col-md-6 col-xl-3" key={svc.title}>
                   <div className="service-block"><div className="inner-box">
                     <div className="image-box">
-                      <figure className="image"><img src={`/assets/images/${svc.img}`} alt={svc.title} /></figure>
+                      <figure className="image"><Image src={`/assets/images/${svc.img}`} alt={svc.title} {...SERVICE_IMG_SIZE[svc.img]} /></figure>
                       <img className="image-bg" src="/assets/images/service-image-bg.png" alt="" />
                       <img className="image-bg hover-bg" src="/assets/images/service-image-bg-hover.png" alt="" />
                     </div>
-                    <div className="content"><div className="h4 title">{svc.title}</div><p className="text">{svc.text}</p></div>
+                    <div className="content"><h3 className="h4 title">{svc.title}</h3><p className="text">{svc.text}</p></div>
                     <div className="item-shape"><img src="/assets/images/service-item-shape.png" alt="" /></div>
                   </div></div>
                 </div>
@@ -160,7 +173,7 @@ export default async function AboutPage() {
             <div className="col-lg-8">
               <div className="sec-title text-center mb-40">
                 <span className="sub-title section-eyebrow">Learn With Us</span>
-                <div className="h2 title">Arabic Classes</div>
+                <h2 className="h2 title">Arabic Classes</h2>
                 <p className="text mt-20">
                   Delivered online (Zoom, Teams or WhatsApp) or in person. Register your interest below and our team
                   will follow up with schedule details.
@@ -176,7 +189,7 @@ export default async function AboutPage() {
         <div className="container">
           <div className="sec-title text-center mb-50">
             <span className="sub-title section-eyebrow">Our People</span>
-            <div className="h2 title">Board &amp; Volunteers</div>
+            <h2 className="h2 title">Board &amp; Volunteers</h2>
           </div>
           <BoardGrid members={board} />
         </div>

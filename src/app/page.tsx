@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import CopyChip from "@/components/CopyChip";
 import FaqAccordion from "@/components/FaqAccordion";
@@ -7,8 +8,9 @@ import BannerRipple from "@/components/BannerRipple";
 import HomeContactForm from "@/components/HomeContactForm";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
 import { getBoardMembers, getContactFormFields, getDonationTotal } from "@/lib/wix";
-import { getTodayPrayerTimes } from "@/lib/prayerTimes";
+import { getTodayHijriDate, getTodayPrayerTimes } from "@/lib/prayerTimes";
 import BoardGrid from "@/components/BoardGrid";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const PRAYER_ICONS: Record<string, ReactNode> = {
   Fajr: (
@@ -71,6 +73,15 @@ const FAQ_ITEMS = [
   },
 ];
 
+// Real pixel dimensions of each service icon photo — lets next/image reserve
+// the correct aspect ratio up front (no layout shift) instead of guessing.
+const SERVICE_IMG_SIZE: Record<string, { width: number; height: number }> = {
+  "service-image1.jpg": { width: 183, height: 183 },
+  "service-image2.jpg": { width: 183, height: 180 },
+  "service-image3.jpg": { width: 183, height: 178 },
+  "service-image4.jpg": { width: 183, height: 183 },
+};
+
 const QUOTES = [
   { text: "“The mosques of Allah are only to be maintained by those who believe in Allah and the Last Day...”", source: "Qur'an, Surah At-Tawbah 9:18" },
   { text: "“And hold firmly to the rope of Allah all together and do not become divided.”", source: "Qur'an, Surah Aal-e-Imran 3:103" },
@@ -78,13 +89,25 @@ const QUOTES = [
   { text: "“The believers, in their mutual kindness, compassion and sympathy, are just like one body.”", source: "Hadith, Sahih al-Bukhari & Muslim" },
 ];
 
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
 export default async function HomePage() {
   const board = await getBoardMembers().catch(() => []);
   const donation = await getDonationTotal().catch(() => null);
   const contactFields = await getContactFormFields().catch(() => undefined);
   const prayerTimes = getTodayPrayerTimes();
+  const hijriDate = getTodayHijriDate();
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       {/* ===== Banner ===== */}
       <section className="banner-section">
         <div className="outer-box">
@@ -94,7 +117,7 @@ export default async function HomePage() {
               <div className="col-xl-8">
                 <div className="banner-content">
                   <span className="sub-title">Bismillahir Rahmanir Rahim</span>
-                  <div className="h1 title">A Peaceful Place to Pray, Learn &amp; Belong</div>
+                  <h1 className="h1 title">A Peaceful Place to Pray, Learn &amp; Belong</h1>
                   <p className="text mt-20" style={{ maxWidth: 560 }}>
                     The Central Cariboo Islamic Center — a chapter of the BC Muslim Association — welcomes the Muslim
                     community of Williams Lake for prayer, learning and fellowship.
@@ -116,7 +139,7 @@ export default async function HomePage() {
               <div className="col-xl-4">
                 <div className="banner-image bounce-y">
                   <figure className="image overlay-anim">
-                    <img src="/assets/images/banner-image.jpg" alt="Masjid interior" />
+                    <Image src="/assets/images/banner-image.jpg" alt="Masjid interior" width={328} height={527} priority />
                   </figure>
                   <div className="image-bg"><img src="/assets/images/banner-image-bg.png" alt="" /></div>
                 </div>
@@ -136,11 +159,11 @@ export default async function HomePage() {
             <div className="col-xl-6 col-lg-9 image-column">
               <div className="inner-column">
                 <div className="image-box">
-                  <figure className="image overlay-anim"><img src="/assets/images/about-image1.jpg" alt="Community gathering" /></figure>
+                  <figure className="image overlay-anim"><Image src="/assets/images/about-image1.jpg" alt="Community gathering" width={552} height={506} sizes="(max-width: 1199px) 90vw, 552px" /></figure>
                   <div className="image-bg"><img src="/assets/images/about-image1-shape.png" alt="" /></div>
                 </div>
                 <div className="image-box image-box-two">
-                  <figure className="image overlay-anim"><img src="/assets/images/service-image1.jpg" alt="Community in prayer" /></figure>
+                  <figure className="image overlay-anim"><Image src="/assets/images/service-image1.jpg" alt="Community in prayer" width={183} height={183} /></figure>
                   <div className="image-bg"><img src="/assets/images/about-image2-shape.png" alt="" /></div>
                 </div>
                 <div className="shape"><img className="animation__arryUpDown" src="/assets/images/about-leaf.png" alt="" /></div>
@@ -150,7 +173,7 @@ export default async function HomePage() {
               <div className="inner-column">
                 <div className="sec-title mb-40">
                   <span className="sub-title section-eyebrow">Welcome to CCIC</span>
-                  <div className="h2 title">Serving the Williams Lake <br /> Muslim Community</div>
+                  <h2 className="h2 title">Serving the Williams Lake <br /> Muslim Community</h2>
                   <p className="text mt-20">
                     The Central Cariboo Islamic Center (CCIC) — a chapter of the BC Muslim Association — is
                     wholeheartedly dedicated to fostering a sense of unity, support and understanding among Muslims
@@ -217,7 +240,7 @@ export default async function HomePage() {
             <div className="col-lg-6 mx-auto">
               <div className="sec-title text-center mb-60">
                 <span className="sub-title section-eyebrow">Sadaqah &amp; Zakat</span>
-                <div className="h2 title">Ways You Can Give</div>
+                <h2 className="h2 title">Ways You Can Give</h2>
               </div>
             </div>
           </div>
@@ -225,10 +248,10 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/paypal-logo.svg" alt="PayPal" /></div></div>
+                  <div className="image-box logo-frame"><div className="image logo-badge"><Image src="/assets/images/paypal-logo.svg" alt="PayPal" width={124} height={33} /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-credit-card"></i> PayPal</div>
-                    <div className="h4 title">Give securely online through our BCMA PayPal account</div>
+                    <h3 className="h4 title">Give securely online through our BCMA PayPal account</h3>
                     <p className="text">The fastest way to give — one-time or recurring, any amount, processed directly by the BC Muslim Association.</p>
                     <a href="https://www.paypal.com/donate/?hosted_button_id=VD5SQYWVZGLWU" target="_blank" rel="noopener noreferrer" className="btn-style-six">Donate via PayPal</a>
                   </div>
@@ -238,10 +261,10 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/interac-logo.png" alt="Interac e-Transfer" /></div></div>
+                  <div className="image-box logo-frame"><div className="image logo-badge"><Image src="/assets/images/interac-logo.png" alt="Interac e-Transfer" width={500} height={500} /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-money-bill-transfer"></i> Interac e-Transfer</div>
-                    <div className="h4 title">Send your donation directly by e-Transfer</div>
+                    <h3 className="h4 title">Send your donation directly by e-Transfer</h3>
                     <p className="text">Quick and secure. Send to the email below — no security question needed for registered BCMA accounts.</p>
                     <CopyChip value="etransfer.cariboo@thebcma.com" />
                   </div>
@@ -251,10 +274,10 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box logo-frame"><div className="image"><img src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque or bank transfer" /></div></div>
+                  <div className="image-box logo-frame"><div className="image"><Image src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque or bank transfer" fill sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw" style={{ objectFit: "cover" }} /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-hand-holding-dollar"></i> Cash / Cheque / Bank Transfer</div>
-                    <div className="h4 title">Prefer to give in person or by cheque?</div>
+                    <h3 className="h4 title">Prefer to give in person or by cheque?</h3>
                     <p className="text">Contact our secretary for cheque mailing instructions or direct bank transfer details.</p>
                     <a href="mailto:cariboo.secretary@thebcma.com?subject=Donation%20by%20cheque%20%2F%20bank%20transfer" className="btn-style-six">Email Us</a>
                   </div>
@@ -271,8 +294,9 @@ export default async function HomePage() {
         <div className="container">
           <div className="sec-title text-center mb-60">
             <span className="sub-title section-eyebrow">Salah</span>
-            <div className="h2 title">Daily Prayers &amp; Jummah</div>
+            <h2 className="h2 title">Daily Prayers &amp; Jummah</h2>
             <p className="text">Stay connected with your daily prayers. Our masjid doors are <br /> always open to worshippers.</p>
+            <p className="text mb-0"><strong>{hijriDate.formatted}</strong> — Williams Lake, BC</p>
           </div>
         </div>
         <div className="outer-box">
@@ -288,7 +312,7 @@ export default async function HomePage() {
                 <div className="time-block">
                   <div className="icon">
                     {PRAYER_ICONS[name]}
-                    <div className="h5 title">{name}</div>
+                    <h3 className="h5 title">{name}</h3>
                   </div>
                   <div className="content"><div className="h6 title">{time}</div></div>
                 </div>
@@ -307,7 +331,7 @@ export default async function HomePage() {
                     <path d="M17.411 28.383s1.066-.359 2.015-.827c3.569-2.112 5.354-5.581 5.354-5.581l-1.808-2.871-5.98 4.111-2.782-8.957-.51-2.756-4.659-2.779s-2.138.387-4.847 3.798C1.728 15.628.693 28.113.385 32.821c-.077 1.178.127 2.352.592 3.438.285.664.808 1.178 1.444 1.466 16.269-2.803 14.99-9.342 14.99-9.342Z" fill="#10551F" stroke="#10551F" strokeWidth=".738" />
                     <path d="M8.004 20.32 12.08 27.98c.556 1.045 1.662 1.698 2.854 1.647 1.093-.048 2.566-.347 4.612-1.332" stroke="#C7DC49" strokeWidth=".738" />
                   </svg>
-                  <div className="h5 title">Jummah</div>
+                  <h3 className="h5 title">Jummah</h3>
                 </div>
                 <div className="content"><div className="h6 title">Every Friday</div></div>
               </div>
@@ -319,6 +343,13 @@ export default async function HomePage() {
               Follow <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">@ccic_bcma on Instagram</a> or{" "}
               <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">Williams Lake Muslims on Facebook</a>, or{" "}
               <a href="mailto:cariboo.secretary@thebcma.com">email us</a> for the exact iqamah schedule.
+            </p>
+            <p className="text mb-0">
+              Source:{" "}
+              <a href="https://www.islamicfinder.org/world/canada/6182212/williams-lake-prayer-times/" target="_blank" rel="noopener noreferrer">
+                IslamicFinder — Williams Lake Prayer Times
+              </a>
+              . Calculation: Islamic Society of North America (ISNA), 15°/15° Fajr &amp; Isha angles, standard (Shafi) Asr, Umm al-Qura Hijri calendar.
             </p>
           </div>
         </div>
@@ -334,7 +365,7 @@ export default async function HomePage() {
                 <div className="col-lg-6">
                   <div className="sec-title">
                     <span className="sub-title section-eyebrow">Services</span>
-                    <div className="h2 title">Our Programs &amp; Services</div>
+                    <h2 className="h2 title">Our Programs &amp; Services</h2>
                   </div>
                 </div>
                 <div className="col-lg-4">
@@ -350,21 +381,23 @@ export default async function HomePage() {
                 { img: "service-image4.jpg", title: <>Community <br /> &amp; Charity</>, text: "Social gatherings and charity drives supporting those in need across the Cariboo.", href: "/donate/" },
               ].map((svc, i) => (
                 <div className="col-md-6 col-xl-3" key={i}>
-                  <div className="service-block">
-                    <div className="inner-box">
-                      <div className="image-box">
-                        <figure className="image"><img src={`/assets/images/${svc.img}`} alt="" /></figure>
-                        <img className="image-bg" src="/assets/images/service-image-bg.png" alt="" />
-                        <img className="image-bg hover-bg" src="/assets/images/service-image-bg-hover.png" alt="" />
+                  <ScrollReveal delay={i * 120}>
+                    <div className="service-block">
+                      <div className="inner-box">
+                        <div className="image-box">
+                          <figure className="image"><Image src={`/assets/images/${svc.img}`} alt="" {...SERVICE_IMG_SIZE[svc.img]} /></figure>
+                          <img className="image-bg" src="/assets/images/service-image-bg.png" alt="" />
+                          <img className="image-bg hover-bg" src="/assets/images/service-image-bg-hover.png" alt="" />
+                        </div>
+                        <div className="content">
+                          <h3 className="h4 title">{svc.title}</h3>
+                          <p className="text">{svc.text}</p>
+                          <Link href={svc.href} className="btn-more"><i className="fa-solid fa-arrow-right"></i></Link>
+                        </div>
+                        <div className="item-shape"><img src="/assets/images/service-item-shape.png" alt="" /></div>
                       </div>
-                      <div className="content">
-                        <div className="h4 title">{svc.title}</div>
-                        <p className="text">{svc.text}</p>
-                        <Link href={svc.href} className="btn-more"><i className="fa-solid fa-arrow-right"></i></Link>
-                      </div>
-                      <div className="item-shape"><img src="/assets/images/service-item-shape.png" alt="" /></div>
                     </div>
-                  </div>
+                  </ScrollReveal>
                 </div>
               ))}
             </div>
@@ -381,7 +414,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="sec-title text-center mb-60">
             <span className="sub-title section-eyebrow">What&apos;s On</span>
-            <div className="h2 title">Upcoming Events &amp; Activities</div>
+            <h2 className="h2 title">Upcoming Events &amp; Activities</h2>
             <p className="text">Join us in our upcoming gatherings and activities to strengthen faith and unity.</p>
           </div>
           <div className="text-center">
@@ -413,7 +446,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="sec-title text-center mb-50">
             <span className="sub-title section-eyebrow">Our People</span>
-            <div className="h2 title">Board &amp; Volunteers</div>
+            <h2 className="h2 title">Board &amp; Volunteers</h2>
           </div>
           <BoardGrid members={board} />
         </div>
@@ -421,47 +454,49 @@ export default async function HomePage() {
 
       {/* ===== Support CTA ===== */}
       <section className="donation-section">
-        <div className="container">
-          <div className="row justify-content-center">
-            <div className="col-lg-7">
-              <div className="donation-image"><img src="/assets/images/donation-image.jpg" alt="CCIC community gathering" /></div>
-            </div>
-            <div className="col-lg-5 d-flex align-items-center">
-              <div className="donation-content">
-                <span className="sub-title section-eyebrow">Building Fund</span>
-                <div className="h2 title mt-10">Help Us Build a Permanent Home</div>
-                <p className="text mt-20">
-                  Muslims in the Central Cariboo don&apos;t yet have a dedicated place of worship — we currently borrow
-                  space at St. Andrew&apos;s United Church for Friday prayers and community life. Your donations bring
-                  us closer to a permanent masjid and Islamic Learning Centre for Williams Lake.
-                </p>
-                {donation && donation.target > 0 && (
-                  <div className="mt-20">
-                    <div className="progress" style={{ height: 10, borderRadius: 999, background: "#e6e6e6", overflow: "hidden" }}>
-                      <div
-                        style={{
-                          width: `${Math.min(100, (donation.raised / donation.target) * 100)}%`,
-                          height: "100%",
-                          background: "#F9B024",
-                        }}
-                      />
+        <div className="outer-container">
+          <div className="container">
+            <div className="row justify-content-center">
+              <div className="col-lg-7">
+                <div className="donation-image"><Image src="/assets/images/donation-image.jpg" alt="CCIC community gathering" fill sizes="(max-width: 480px) 90vw, 480px" style={{ objectFit: "cover" }} /></div>
+              </div>
+              <div className="col-lg-5 d-flex align-items-center">
+                <div className="donation-content">
+                  <span className="sub-title section-eyebrow">Building Fund</span>
+                  <h2 className="h2 title mt-10">Help Us Build a Permanent Home</h2>
+                  <p className="text mt-20">
+                    Muslims in the Central Cariboo don&apos;t yet have a dedicated place of worship — we currently borrow
+                    space at St. Andrew&apos;s United Church for Friday prayers and community life. Your donations bring
+                    us closer to a permanent masjid and Islamic Learning Centre for Williams Lake.
+                  </p>
+                  {donation && donation.target > 0 && (
+                    <div className="mt-20">
+                      <div className="progress" style={{ height: 10, borderRadius: 999, background: "#e6e6e6", overflow: "hidden" }}>
+                        <div
+                          style={{
+                            width: `${Math.min(100, (donation.raised / donation.target) * 100)}%`,
+                            height: "100%",
+                            background: "#F9B024",
+                          }}
+                        />
+                      </div>
+                      <p className="text mt-10 mb-0">
+                        <strong>${donation.raised.toLocaleString()}</strong> raised of a ${donation.target.toLocaleString()} goal
+                      </p>
                     </div>
-                    <p className="text mt-10 mb-0">
-                      <strong>${donation.raised.toLocaleString()}</strong> raised of a ${donation.target.toLocaleString()} goal
-                    </p>
-                  </div>
-                )}
-                <Link href="/donate/" className="theme-btn btn-style-one mt-20">
-                  <span className="btn-arrow-left"><i className="fa-solid fa-arrow-right"></i></span>
-                  <span className="btn-title">Give Now </span>
-                  <span className="btn-arrow-right"><i className="fa-solid fa-arrow-right"></i></span>
-                </Link>
+                  )}
+                  <Link href="/donate/" className="theme-btn btn-style-one mt-20">
+                    <span className="btn-arrow-left"><i className="fa-solid fa-arrow-right"></i></span>
+                    <span className="btn-title">Give Now </span>
+                    <span className="btn-arrow-right"><i className="fa-solid fa-arrow-right"></i></span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
+          <div className="sec-bg"><img src="/assets/images/donation-bg.png" alt="" /></div>
+          <div className="sec-shape"><img src="/assets/images/donation-shape.png" alt="" /></div>
         </div>
-        <div className="sec-bg"><img src="/assets/images/donation-bg.png" alt="" /></div>
-        <div className="sec-shape"><img src="/assets/images/donation-shape.png" alt="" /></div>
       </section>
 
       {/* ===== FAQ ===== */}
@@ -470,7 +505,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="sec-title text-center mb-50">
             <span className="h6 sub-title section-eyebrow">FAQs</span>
-            <div className="h2 title">Have Questions? Find Your Answers Here</div>
+            <h2 className="h2 title">Have Questions? Find Your Answers Here</h2>
           </div>
           <div className="row">
             <div className="col-lg-10 mx-lg-auto">
@@ -487,7 +522,7 @@ export default async function HomePage() {
         <div className="outer-box">
           <div className="sec-title text-center">
             <span className="h6 sub-title section-eyebrow">Words to Live By</span>
-            <div className="h2 title">Guidance from the Qur&apos;an &amp; Sunnah</div>
+            <h2 className="h2 title">Guidance from the Qur&apos;an &amp; Sunnah</h2>
           </div>
           <div className="container mt-40">
             <InspirationSlider quotes={QUOTES} />
@@ -499,12 +534,12 @@ export default async function HomePage() {
       <section className="contact-section pb-120">
         <div className="outer-container">
           <div className="container">
-            <div className="row g-0">
+            <div className="row g-4">
               <div className="col-lg-5 content-column">
                 <div className="inner-column">
                   <div className="sec-title mb-40">
                     <span className="sub-title section-eyebrow">Contact With Us</span>
-                    <div className="h2 title">Feel Free to Write Us Anytime</div>
+                    <h2 className="h2 title">Feel Free to Write Us Anytime</h2>
                   </div>
                   <div className="map-image">
                     <iframe

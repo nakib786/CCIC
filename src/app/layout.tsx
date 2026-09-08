@@ -3,16 +3,48 @@ import Script from "next/script";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
+import SmoothScroll from "@/components/SmoothScroll";
+import { ADDRESS, CONTACT_EMAIL, GEO, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Central Cariboo Islamic Center | BC Muslim Association — Williams Lake",
     template: "%s | Central Cariboo Islamic Center",
   },
-  description:
-    "Central Cariboo Islamic Center (CCIC), a chapter of the BC Muslim Association, serving the Muslim community of Williams Lake, BC with prayers, education and community programs.",
+  description: SITE_DESCRIPTION,
   icons: { icon: "/assets/images/BCMA_Logo.jpg" },
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_CA",
+    url: SITE_URL,
+    images: [{ url: "/assets/images/banner-image.jpg" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/assets/images/banner-image.jpg"],
+  },
+};
+
+const mosqueJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Mosque",
+  name: SITE_NAME,
+  alternateName: "CCIC",
+  description: SITE_DESCRIPTION,
+  url: SITE_URL,
+  email: CONTACT_EMAIL,
+  image: `${SITE_URL}/assets/images/banner-image.jpg`,
+  logo: `${SITE_URL}/assets/images/BCMA_Logo.jpg`,
+  address: { "@type": "PostalAddress", ...ADDRESS },
+  geo: { "@type": "GeoCoordinates", ...GEO },
+  areaServed: "Williams Lake, BC",
+  memberOf: { "@type": "Organization", name: "BC Muslim Association", url: "https://thebcma.com" },
+  sameAs: SOCIAL_LINKS,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -34,10 +66,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="/assets/css/custom.css" rel="stylesheet" />
       </head>
       <body>
+        {/* JSON-LD belongs in the body, not <head> — React 19 specially
+            hoists/dedupes <script>/<style>/<link> tags for the document
+            head, and a hand-placed <script> inside a literal <head> element
+            conflicts with that, causing a hydration mismatch. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(mosqueJsonLd) }}
+        />
         <div className="page-wrapper">
-          <Header />
-          {children}
-          <Footer />
+          {/* .back-to-top is `position: fixed`, which only stays pinned to
+              the viewport if nothing between it and <body> carries a
+              transform — GSAP ScrollSmoother puts one on #smooth-content, so
+              it lives outside that region. Header's own always-fixed pieces
+              (.sticky-header, .mobile-menu) portal themselves out for the
+              same reason; its plain .header-lower bar stays inside so it
+              still occupies normal flow and pushes page content down. */}
+          <SmoothScroll>
+            <Header />
+            {children}
+            <Footer />
+          </SmoothScroll>
           <BackToTop />
         </div>
 
