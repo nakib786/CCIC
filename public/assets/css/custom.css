@@ -31,6 +31,99 @@
 .mobile-menu .nav-logo img { max-height: 44px; }
 .footer-one .logo img { max-height: 60px; }
 
+/* ---- Mobile header: below 1023.98px the main nav collapses into the
+   hamburger toggler, leaving only the small square logo mark with nothing
+   naming the chapter — add the chapter name next to it on that breakpoint
+   only (desktop keeps the plain logo since the nav/menu text already
+   identifies the site). ---- */
+.site-name-mobile {
+  display: none;
+}
+@media (max-width: 1023.98px) {
+  /* The desktop nav (.main-menu) is already display:none at this width, but
+     its empty .nav-outer wrapper still claims flex space (width: 100% in
+     theme.css) and squeezes the logo/hamburger — nothing in it is visible,
+     so drop the wrapper too. */
+  .header-style-one .header-lower .nav-outer {
+    display: none;
+  }
+  /* nav-outer was the flex item whose width:100% pushed action-box (the
+     hamburger) to the right edge; with it gone, logo-box and action-box are
+     the only two children left and default to sitting side by side at the
+     start, so restore the left/right split directly on main-box. */
+  .header-style-one .header-lower .main-box {
+    justify-content: space-between;
+    width: 100%;
+  }
+  .header-style-one .header-lower .logo-box {
+    align-items: center;
+    display: flex;
+    flex-shrink: 0;
+    gap: 12px;
+    min-width: 220px;
+  }
+  .header-style-one .header-lower .logo-box .logo {
+    /* theme.css hardcodes .logo to 192px (sized for the original template's
+       wide logotype); our square logo image is scaled down to ~44px tall,
+       but the container kept reserving the full 192px, which overflowed
+       the header once the chapter name sits beside it. */
+    flex-shrink: 0;
+    width: auto;
+  }
+  .site-name-mobile {
+    color: var(--theme-color-dark);
+    display: inline-block;
+    flex-shrink: 0;
+    font-family: var(--heading-font-family);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.25;
+    width: 150px;
+  }
+}
+/* ---- Sticky (frozen-on-scroll) header: shows the chapter name next to the
+   logo at every screen size (unlike .site-name-mobile above, which is
+   mobile-only because the main header's desktop nav already names the site).
+   .sticky-header's own .inner-container is a two-item flex row (logo,
+   nav-outer) with justify-content: space-between — grouping the logo and
+   name into one flex item keeps them side by side instead of being spread
+   apart as separate flex children. ---- */
+.sticky-header .sticky-logo-box {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+}
+/* theme.css hardcodes .main-header .logo (which the sticky header inherits,
+   since it's nested inside the same <header>) to a fixed 192px width sized
+   for the original template's wide logotype — on the sticky header's compact
+   40px-tall logo this reserved 152px of dead space, which is what pushed the
+   chapter name and hamburger toggler past the edge of the header entirely
+   on mobile instead of just tightening the gap between them. */
+.sticky-header .logo {
+  flex-shrink: 0;
+  width: auto;
+}
+.sticky-header .nav-outer {
+  flex-shrink: 0;
+}
+.sticky-header-name {
+  color: var(--headings-color);
+  font-family: var(--heading-font-family);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .sticky-header-name {
+    font-size: 13px;
+  }
+}
+
 /* ---- Header contact widget: no fabricated phone number, address + email ---- */
 .contact-widget a { white-space: nowrap; }
 
@@ -103,6 +196,23 @@
   background: rgba(20, 78, 151, 0.04);
 }
 .empty-state i { font-size: 40px; color: var(--theme-color3); margin-bottom: 18px; display: inline-block; }
+
+/* ---- Events empty-state Instagram/Facebook buttons: .btn-style-three keeps
+   its actual icon (.btn-arrow-left) scaled to 0 until :hover, showing a
+   generic arrow (.btn-arrow-right) at rest instead — fine for a plain "read
+   more" CTA, but here it meant both buttons looked identical (same bare
+   arrow circle) at rest, with no way to tell Instagram from Facebook by icon
+   at all on touch devices, which never trigger :hover. Applying the theme's
+   own hover-state values permanently so the real brand icon always shows. ---- */
+.empty-state .btn-style-three .btn-arrow-left {
+  scale: 1;
+}
+.empty-state .btn-style-three .btn-arrow-right {
+  display: none;
+}
+.empty-state .btn-style-three .btn-title {
+  transform: translateX(30px);
+}
 
 /* ---- Inspiration (Qur'an / Hadith) quote slider — replaces stock testimonials ---- */
 .testimonial-block-two .quote-source {
@@ -228,6 +338,91 @@
 /* ---- Ways to give cards (replaces fake fundraiser progress bars) ---- */
 .give-block .content-box .tag { display: inline-flex; align-items: center; gap: 8px; }
 .give-block .content-box .tag i { color: var(--theme-color1); }
+
+/* ---- Give-block cards: theme.css's hover crossfade expects two stacked
+   images (a visible one plus a blurred :first-child overlay revealed on
+   hover) — every card here only ever renders one, which still matches
+   :first-child, so it inherits opacity: 0 / absolute positioning and stays
+   permanently invisible. With the image gone, its .image box collapses to
+   0 height, which is why the Cash/Cheque card (no logo, so nothing masked
+   the bug) rendered far shorter than the PayPal/Interac cards next to it.
+   Restoring normal flow fixes both the visibility and the card-height
+   mismatch in one pass. ---- */
+.give-block .image-box .image img {
+  filter: none !important;
+  opacity: 1 !important;
+  position: static !important;
+  transform: none !important;
+  width: 100%;
+}
+
+/* ---- Give-block equal-height cards: Bootstrap's row stretches the
+   columns themselves to match the tallest one, but a plain block div
+   doesn't inherit that as its own height without being told to — and text
+   length varies (PayPal's card carries an extra sentence + button that the
+   Cash/Cheque card doesn't), so the cards still ended up different heights.
+   Filling the stretched column and pinning each card's CTA to the bottom
+   keeps all three level regardless of copy length. ---- */
+.give-block {
+  height: 100%;
+}
+.give-block .inner-block {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.give-block .image-box {
+  height: 235px;
+}
+.give-block .image-box .image {
+  height: 100%;
+}
+.give-block .image-box .image img {
+  height: 100%;
+  object-fit: cover;
+}
+.give-block .content-box {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+.give-block .content-box .btn-style-six,
+.give-block .content-box .copy-chip {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* PayPal / Interac payment-method logos read as a small badge, not a
+   full-bleed photo — sat on a white tile, centered and contained, within
+   the same fixed-height image area the photo card above now also uses. */
+.give-block .image-box .image.logo-badge {
+  align-items: center;
+  background: var(--theme-color-white);
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+.give-block .image-box .image.logo-badge img {
+  height: auto;
+  max-height: 64px;
+  max-width: 200px;
+  object-fit: contain;
+  width: auto;
+}
+/* A framed inset (rather than the image filling the whole card top) makes
+   clear the image is one bordered element sitting inside the card, not the
+   card's background. Applies to any card image, logo badge or photo alike,
+   so all three donation methods read as the same kind of card. */
+.give-block .image-box.logo-frame {
+  padding: 20px;
+}
+.give-block .image-box.logo-frame .image {
+  border: 1px solid rgba(20, 78, 151, 0.18);
+  border-radius: 16px;
+  height: 100%;
+  overflow: hidden;
+  width: 100%;
+}
 .give-note {
   font-size: 13px;
   color: var(--text-color);
@@ -403,9 +598,6 @@
 .service-block .inner-box {
   border-radius: 24px;
 }
-.time-block {
-  border-radius: 20px;
-}
 
 /* ---- Critical fix: theme.css references ~25 decorative CSS mask-image blobs
    (images/mask/*.png, images/resource/*.png, images/bg/*.png) that were never
@@ -484,4 +676,201 @@
   -webkit-mask-size: contain !important;
   mask-position: center !important;
   -webkit-mask-position: center !important;
+}
+/* ---- Footer newsletter subscribe form (mirrors the "Subscribe to get
+   exclusive updates" widget on theccic.ca's footer/contact page) ---- */
+.footer-subscribe {
+  max-width: 420px;
+  margin: 30px auto 0;
+}
+.footer-subscribe-title {
+  color: var(--theme-color-white);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.footer-subscribe-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.footer-subscribe-row input[type="email"] {
+  flex: 1 1 220px;
+  height: 50px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(var(--theme-color-white-rgb), 0.2);
+  color: var(--theme-color-white);
+  font-weight: 500;
+}
+.footer-subscribe-row input[type="email"]::placeholder {
+  color: rgba(var(--theme-color-white-rgb), 0.75);
+}
+.footer-subscribe-row button {
+  flex: 0 0 auto;
+  height: 50px;
+  padding: 0 24px;
+  border: none;
+  border-radius: 999px;
+  background: var(--theme-color-white);
+  color: var(--theme-color3);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.footer-subscribe-row button:hover:not(:disabled) {
+  background: var(--theme-color1);
+}
+.footer-subscribe-row button:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.footer-subscribe-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: rgba(var(--theme-color-white-rgb), 0.85);
+  font-size: 13px;
+  cursor: pointer;
+}
+.footer-subscribe-thanks {
+  color: var(--theme-color-white);
+  font-weight: 600;
+}
+.footer-subscribe-error {
+  color: #ffd7d7;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+/* ---- About page: land acknowledgement. The preceding .about-section's
+   ::before is a big decorative oval taller than the section itself (see the
+   "page-banner + about-section:before" fix above) — since it's absolutely
+   positioned with no z-index, it paints in the browser's default "positioned
+   elements" layer, which sits above plain in-flow content regardless of DOM
+   order, so its overflow was covering this section's card instead of sitting
+   behind it. Lifting the card into its own stacked layer (same trick used by
+   .about-section .image-column .inner-column) puts it back on top. ---- */
+.land-ack-box {
+  position: relative;
+  z-index: 1;
+  border-radius: 30px;
+  padding: 50px;
+}
+@media (max-width: 767.98px) {
+  .land-ack-box { padding: 30px 24px; }
+}
+.land-ack-image {
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(10, 47, 92, 0.18);
+}
+.land-ack-image img {
+  width: 100%;
+  display: block;
+}
+
+/* time-item-mask.png is the one mask asset we actually recovered (downloaded
+   from the theme vendor's own demo), so give the Salah cards their real
+   hexagonal "ticket" shape back instead of the border-radius fallback.
+   100% 100% (stretch, not cover/contain) because the card's rendered height
+   doesn't exactly match the mask's native 312x114 — cover would crop the
+   pointed tips, contain would letterbox; stretching the mask to the box is
+   imperceptible on a shape this simple and keeps the tips flush with the
+   card edges. */
+.time-block {
+  mask-image: url(../images/mask/time-item-mask.png) !important;
+  -webkit-mask-image: url(../images/mask/time-item-mask.png) !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-size: 100% 100% !important;
+  -webkit-mask-size: 100% 100% !important;
+  mask-position: center !important;
+  -webkit-mask-position: center !important;
+}
+/* Every .time-block rule in theme.css (background, icon colour, hover swap,
+   heading colours) is built entirely off --theme-color1/2/3, so redefining
+   those three custom properties scoped to the card is enough to reproduce
+   the original demo's green palette here without touching the site's navy
+   /gold brand colours used everywhere else (buttons, nav, etc). Values are
+   the exact green trio from the template vendor's own demo. */
+.time-block {
+  --theme-color1: #C7DC49;
+  --theme-color2: #0C2F25;
+  --theme-color3: #10551F;
+}
+
+/* ---- Contact info bar (homepage + contact page): the email/address text
+   overflows its box because a flex item's default min-width is its content's
+   unwrapped width, not 0 — the long support email then pushes past the
+   column edge instead of wrapping. theme.css also only styles the envelope/
+   pin `i` (FontAwesome) icons with the circular grey badge; the Instagram
+   SVG icon component has no matching selector, so it rendered as a small
+   bare glyph instead of a badge matching the other two. ---- */
+.contact-block .inner-box > div:not(:first-child) {
+  min-width: 0;
+}
+.contact-block .inner-box .text {
+  overflow-wrap: break-word;
+}
+.contact-block .inner-box svg {
+  background: var(--theme-color-gray);
+  border-radius: 50%;
+  box-sizing: border-box;
+  color: var(--theme-color3);
+  flex-shrink: 0;
+  height: 60px;
+  min-width: 60px;
+  padding: 20px;
+  width: 60px;
+}
+.contact-block .inner-box a {
+  color: inherit;
+  text-decoration: none;
+}
+.contact-block .inner-box a:hover {
+  text-decoration: underline;
+}
+/* theme.css draws the vertical divider between blocks as :after positioned
+   70px (20px below 1199.98px) in from .inner-box's right edge — tuned for
+   the original template's much shorter placeholder text. The real support
+   email needs the box's near-full width to fit on one line, so pull the
+   divider in near the edge instead (it then sits in the row's own gutter
+   space rather than over the column's content) and keep a small buffer on
+   the text so the two never touch. */
+.contact-block .inner-box:not(.after-none) {
+  padding-right: 14px;
+}
+.contact-block .inner-box:not(.after-none):after {
+  right: 4px;
+}
+@media (max-width: 767.98px) {
+  .contact-block .inner-box:not(.after-none) {
+    padding-right: 0;
+  }
+}
+/* Long as it is, the support email reads better as one line than wrapped
+   mid-address — .text-nowrap (Bootstrap utility) keeps it intact; the
+   padding/divider changes above make room for it at every breakpoint. */
+.contact-block .inner-box .text.text-nowrap {
+  overflow-wrap: normal;
+}
+/* ---- Social block: shows both platforms it links to (Instagram + Facebook)
+   instead of a single Instagram badge standing in for both, so each icon
+   pairs with its own line of text below. Sized down from the standard 60px
+   single-icon badge (svg rule above) so two side-by-side badges plus the
+   divider clearance above still fit the column without crowding. ---- */
+.contact-block .contact-icons {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+.contact-block .contact-icons svg {
+  height: 44px;
+  min-width: 44px;
+  padding: 12px;
+  width: 44px;
 }

@@ -58,7 +58,7 @@ export default async function DonatePage() {
           <div className="row">
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block"><div className="inner-block">
-                <div className="image-box"><div className="image"><img src="/assets/images/causes-1.jpg" alt="PayPal" /></div></div>
+                <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/paypal-logo.svg" alt="PayPal" /></div></div>
                 <div className="content-box">
                   <div className="tag"><i className="fa-solid fa-credit-card"></i> PayPal</div>
                   <div className="h4 title">Give securely online through our BCMA PayPal account</div>
@@ -69,7 +69,7 @@ export default async function DonatePage() {
             </div>
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block"><div className="inner-block">
-                <div className="image-box"><div className="image"><img src="/assets/images/causes-2.jpg" alt="Interac e-Transfer" /></div></div>
+                <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/interac-logo.png" alt="Interac e-Transfer" /></div></div>
                 <div className="content-box">
                   <div className="tag"><i className="fa-solid fa-money-bill-transfer"></i> Interac e-Transfer</div>
                   <div className="h4 title">Send your donation via e-Transfer</div>
@@ -80,7 +80,7 @@ export default async function DonatePage() {
             </div>
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block"><div className="inner-block">
-                <div className="image-box"><div className="image"><img src="/assets/images/causes-3.jpg" alt="Cheque" /></div></div>
+                <div className="image-box logo-frame"><div className="image"><img src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque" /></div></div>
                 <div className="content-box">
                   <div className="tag"><i className="fa-solid fa-hand-holding-dollar"></i> Cash / Cheque / Bank Transfer</div>
                   <div className="h4 title">Prefer to give in person?</div>

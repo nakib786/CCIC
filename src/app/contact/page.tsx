@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import HomeContactForm from "@/components/HomeContactForm";
-import { InstagramIcon } from "@/components/SocialIcons";
+import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
+import { getContactFormFields } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Get in touch with the Central Cariboo Islamic Center in Williams Lake, BC.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const contactFields = await getContactFormFields().catch(() => undefined);
   return (
     <>
       <section className="page-banner">
@@ -42,7 +44,7 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="col-lg-7">
-                <HomeContactForm />
+                <HomeContactForm fields={contactFields} />
               </div>
             </div>
           </div>
@@ -55,12 +57,15 @@ export default function ContactPage() {
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
                     <i className="fa-solid fa-envelope"></i>
-                    <div><p className="text">cariboo.secretary@thebcma.com</p></div>
+                    <div><p className="text text-nowrap"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></p></div>
                   </div></div>
                 </div>
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
-                    <InstagramIcon />
+                    <div className="contact-icons">
+                      <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><InstagramIcon /></a>
+                      <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FacebookIcon /></a>
+                    </div>
                     <div>
                       <p className="text"><a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">@ccic_bcma</a></p>
                       <p className="text"><a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">Williams Lake Muslims</a></p>
@@ -70,7 +75,16 @@ export default function ContactPage() {
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box after-none">
                     <i className="fa-solid fa-location-dot"></i>
-                    <div><p className="text">1000 Huckvale Pl,</p><p className="text">Williams Lake, BC V2G 4L2</p></div>
+                    <div>
+                      <a
+                        href="https://www.google.com/maps/search/?api=1&query=1000+Huckvale+Pl%2C+Williams+Lake%2C+BC+V2G+4L2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <p className="text">1000 Huckvale Pl,</p>
+                        <p className="text">Williams Lake, BC V2G 4L2</p>
+                      </a>
+                    </div>
                   </div></div>
                 </div>
               </div>

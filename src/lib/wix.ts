@@ -160,3 +160,124 @@ export async function submitArabicClassesRegistration(input: {
     }),
   });
 }
+
+// "Contact Us" Wix Forms schema, edited directly in the Wix dashboard (Forms
+// app) so the site owner can add/remove/relabel fields without a code change.
+const CONTACT_FORM_ID = "bebda589-5a26-440d-bfa0-2528832400d0";
+
+export type ContactFormField = {
+  target: string;
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  kind: "text" | "email" | "tel" | "textarea";
+};
+
+type WixRawFormField = {
+  id: string;
+  identifier: string;
+  fieldType: "INPUT" | "DISPLAY";
+  inputOptions?: {
+    target: string;
+    required?: boolean;
+    stringOptions?: {
+      componentType: string;
+      textInputOptions?: { label?: string; placeholder?: string };
+      phoneInputOptions?: { label?: string; placeholder?: string };
+    };
+  };
+};
+
+type WixRawForm = {
+  formFields: WixRawFormField[];
+  steps: Array<{
+    layout: { large?: { items: Array<{ fieldId: string; row: number; column: number }> } };
+  }>;
+};
+
+/**
+ * Reads the Contact form's field list live from Wix Forms on every request
+ * (no-store, via wixFetch) so editing fields/labels/required in the Wix
+ * dashboard is reflected on the site without redeploying.
+ */
+export async function getContactFormFields(): Promise<ContactFormField[]> {
+  const data = await wixFetch<{ form: WixRawForm }>(
+    `/form-schema-service/v4/forms/${CONTACT_FORM_ID}`
+  );
+  const form = data.form;
+
+  const order = form.steps[0]?.layout.large?.items ?? [];
+  const orderIndex = new Map(
+    [...order]
+      .sort((a, b) => a.row - b.row || a.column - b.column)
+      .map((item, index) => [item.fieldId, index])
+  );
+
+  return form.formFields
+    .filter((f): f is WixRawFormField & { inputOptions: NonNullable<WixRawFormField["inputOptions"]> } =>
+      f.fieldType === "INPUT" && !!f.inputOptions
+    )
+    .sort((a, b) => (orderIndex.get(a.id) ?? 0) - (orderIndex.get(b.id) ?? 0))
+    .map((f) => {
+      const options = f.inputOptions.stringOptions;
+      const kind: ContactFormField["kind"] =
+        f.identifier === "TEXT_AREA"
+          ? "textarea"
+          : f.identifier === "CONTACTS_EMAIL"
+            ? "email"
+            : f.identifier === "CONTACTS_PHONE"
+              ? "tel"
+              : "text";
+      const view = options?.textInputOptions ?? options?.phoneInputOptions;
+      return {
+        target: f.inputOptions.target,
+        label: view?.label ?? f.inputOptions.target,
+        placeholder: view?.placeholder,
+        required: f.inputOptions.required ?? false,
+        kind,
+      };
+    });
+}
+
+export async function submitContactForm(fields: Record<string, string>): Promise<void> {
+  await wixFetch("/forms/v4/submissions", {
+    method: "POST",
+    body: JSON.stringify({
+      submission: {
+        formId: CONTACT_FORM_ID,
+        submissions: fields,
+      },
+    }),
+  });
+}
+
+// Same "Subscribe Form 2" already live in the footer and contact page of
+// theccic.ca (the original Wix site) — reused here rather than creating a
+// duplicate, so both sites feed the same Wix Contacts mailing list.
+const SUBSCRIBE_FORM_ID = "a6a5c09a-ff02-41a7-be40-a006e8e8e3d1";
+
+export async function isSubscribed(email: string): Promise<boolean> {
+  const data = await wixFetch<{ subscriptions: Array<{ subscriptionStatus: string }> }>(
+    "/email-marketing/v1/email-subscriptions/query",
+    {
+      method: "POST",
+      body: JSON.stringify({ filter: { email: { $in: [email] } } }),
+    }
+  );
+  return data.subscriptions.some((s) => s.subscriptionStatus === "SUBSCRIBED");
+}
+
+export async function submitSubscriber(email: string): Promise<void> {
+  await wixFetch("/forms/v4/submissions", {
+    method: "POST",
+    body: JSON.stringify({
+      submission: {
+        formId: SUBSCRIBE_FORM_ID,
+        submissions: {
+          email,
+          form_field_fcdc: true,
+        },
+      },
+    }),
+  });
+}

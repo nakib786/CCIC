@@ -101,6 +101,31 @@ export default async function AboutPage() {
         </div>
       </section>
 
+      <section className="land-ack-section pt-120">
+        <div className="container">
+          <div className="land-ack-box bg-soft">
+            <div className="row g-4 align-items-center">
+              <div className="col-lg-4 col-md-5">
+                <div className="land-ack-image">
+                  <img src="/assets/images/firstNation.png" alt="Symbols of First Nations heritage — totem pole, tipi, hand drum and inukshuk" />
+                </div>
+              </div>
+              <div className="col-lg-8 col-md-7">
+                <span className="sub-title section-eyebrow">In Recognition</span>
+                <div className="h2 title mt-10 mb-20">Land Acknowledgement</div>
+                <p className="text">
+                  The Central Cariboo Islamic Center gathers, worships and serves on the traditional and ancestral
+                  territory of the Secwepemc (Shuswap) Nation — home to the T&apos;exelcemc (Williams Lake First
+                  Nation) and neighbouring the Xat&apos;sull First Nation (Soda Creek). We are grateful for the
+                  opportunity to live, learn and build community on this land, and we honour the Secwepemc peoples&apos;
+                  enduring stewardship and connection to this territory, which spans thousands of years.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="service-section pt-120">
         <div className="outer-container">
           <div className="container">

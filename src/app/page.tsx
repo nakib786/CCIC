@@ -1,13 +1,52 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import CopyChip from "@/components/CopyChip";
 import FaqAccordion from "@/components/FaqAccordion";
 import InspirationSlider from "@/components/InspirationSlider";
 import BannerRipple from "@/components/BannerRipple";
 import HomeContactForm from "@/components/HomeContactForm";
-import { InstagramIcon } from "@/components/SocialIcons";
-import { getBoardMembers, getDonationTotal } from "@/lib/wix";
+import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
+import { getBoardMembers, getContactFormFields, getDonationTotal } from "@/lib/wix";
 import { getTodayPrayerTimes } from "@/lib/prayerTimes";
 import BoardGrid from "@/components/BoardGrid";
+
+const PRAYER_ICONS: Record<string, ReactNode> = {
+  Fajr: (
+    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M25.02 15.299c0-5.268-4.269-9.548-9.526-9.548s-9.526 4.28-9.526 9.548c0 .667.069 1.311.195 1.944-1.882.506-3.707 1.161-5.474 1.978.172.552.378 1.081.608 1.599C3.73 26.227 9.147 30 15.46 30c6.312 0 11.741-3.773 14.163-9.191.229-.518.436-1.059.608-1.611-1.756-.805-3.569-1.449-5.429-1.955.126-.621.195-1.277.195-1.944h.023ZM7.678 15.299c0-4.314 3.501-7.834 7.816-7.834s7.816 3.509 7.816 7.834c0 .529-.057 1.035-.149 1.53-2.49-.541-5.05-.829-7.667-.829s-5.176.277-7.667.829c-.103-.495-.149-1.013-.149-1.53ZM7.54 6.936 4.614 4.003 3.409 5.211l2.972 2.979c.356-.448.734-.874 1.159-1.254ZM28.004 5.222 26.799 4.015 23.643 7.178c.402.403.781.84 1.125 1.3l3.236-3.255ZM16.332 3.819V0h-1.71v3.819c.287-.023.563-.035.85-.035s.574.012.86.035ZM3.902 15.38c0-.311.012-.621.035-.932H0v1.714h3.937c-.012-.253-.023-.517-.023-.782ZM27.006 14.448c.023.31.034.621.034.931 0 .265 0 .518-.023.782H31v-1.714h-3.994Z" />
+    </svg>
+  ),
+  Zuhr: (
+    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M15.494 5.763c-5.256 0-9.526 4.279-9.526 9.548s4.27 9.548 9.526 9.548 9.526-4.279 9.526-9.548-4.27-9.548-9.526-9.548Zm0 17.381c-4.304 0-7.816-3.508-7.816-7.833s3.501-7.834 7.816-7.834 7.816 3.509 7.816 7.834-3.501 7.833-7.816 7.833ZM6.393 22.408l-2.973 2.979 1.205 1.208 2.927-2.933a9.9 9.9 0 0 1-1.159-1.254ZM23.643 23.443l3.156 3.163 1.205-1.208-3.236-3.244c-.344.46-.711.897-1.125 1.3ZM14.622 26.342V30h1.71v-3.658a9.9 9.9 0 0 1-1.71 0ZM3.948 16.162a9.8 9.8 0 0 1-.035-.851c0-.287.012-.575.035-.851H0v1.714h3.948ZM7.54 6.936 4.614 4.003 3.409 5.211 6.381 8.19c.356-.448.734-.874 1.159-1.254ZM28.004 5.222l-1.205-1.207-3.156 3.163c.402.403.781.84 1.125 1.3l3.236-3.256ZM16.332 4.268V0h-1.71v4.268a9.9 9.9 0 0 1 1.71 0ZM27.017 14.448h-.011c.023.287.034.575.034.851s-.011.564-.034.851H31v-1.714h-3.983Z" />
+    </svg>
+  ),
+  Asr: (
+    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M6.248 17.447c.436-.622.929-1.198 1.479-1.716 0-.138-.011-.276-.011-.414 0-4.319 3.497-7.843 7.807-7.843s7.807 3.512 7.807 7.843c0 .138 0 .276-.011.414.55.518 1.043 1.094 1.479 1.716.161-.679.241-1.393.241-2.13 0-5.263-4.265-9.559-9.516-9.559s-9.516 4.284-9.516 9.559c0 .726.08 1.44.241 2.13ZM7.578 6.944 4.655 4.008 3.451 5.217 6.42 8.2c.356-.449.734-.875 1.158-1.255ZM28.019 5.229l-1.204-1.209-3.153 3.167c.402.403.78.84 1.124 1.3l3.233-3.258ZM16.36 3.823V0h-1.708v3.823a9.8 9.8 0 0 1 1.708 0ZM3.944 15.397c0-.311.011-.622.034-.933H.046v1.716h3.932c-.012-.253-.023-.518-.023-.783ZM27.022 14.465c.023.31.034.622.034.932 0 .265 0 .519-.023.784h3.978v-1.716h-3.989ZM25.039 24.069v-.046c0-5.274-4.265-9.558-9.516-9.558s-9.516 4.284-9.516 9.558v.046C3.646 24.3 1.536 25.405 0 27.063v2.949c1.181-2.315 3.474-3.962 6.168-4.239.252-.023.516-.034.768-.034.332 0 .653.023.974.057a9.7 9.7 0 0 1-.207-1.739v-.034c0-4.319 3.497-7.843 7.807-7.843s7.807 3.512 7.807 7.843v.034c0 .599-.069 1.186-.206 1.739.321-.034.642-.057.974-.057.264 0 .516.011.78.034 2.66.265 4.93 1.878 6.122 4.147v-2.914c-1.536-1.624-3.622-2.706-5.961-2.948Z" />
+    </svg>
+  ),
+  Maghrib: (
+    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+      <path d="M25.02 15.299c0-5.257-4.269-9.548-9.526-9.548S5.968 10.031 5.968 15.299c0 .667.069 1.311.195 1.944-1.882.506-3.707 1.173-5.474 1.978.172.552.378 1.081.608 1.599C3.73 26.227 9.147 30 15.46 30c6.312 0 11.741-3.773 14.163-9.191.229-.518.436-1.059.608-1.611-1.756-.805-3.569-1.461-5.429-1.955.126-.621.195-1.277.195-1.944h.023ZM19.764 23.834l-4.293 4.901-4.361-4.958-4.132-4.705c.494-.126.988-.253 1.482-.368 2.284-.506 4.637-.759 7.035-.759s4.751.265 7.035.759c.47.103.952.218 1.411.345l-4.189 4.785h.012ZM15.494 16.012c-2.605 0-5.176.276-7.667.828-.103-.494-.149-1.012-.149-1.53 0-4.314 3.501-7.834 7.816-7.834s7.816 3.509 7.816 7.834c0 .529-.046 1.035-.149 1.53-2.49-.541-5.05-.828-7.667-.828ZM7.54 6.936 4.614 4.003 3.409 5.211 6.381 8.19c.356-.448.734-.874 1.159-1.254ZM28.004 5.222l-1.205-1.207-3.156 3.163c.402.403.781.84 1.125 1.3l3.236-3.256ZM16.332 3.819V0h-1.71v3.819a9.8 9.8 0 0 1 1.71 0ZM3.902 15.38c0-.311.012-.621.035-.932H0v1.714h3.937c-.012-.253-.023-.517-.023-.782ZM27.006 14.448c.023.31.034.621.034.931 0 .265 0 .518-.023.782H31v-1.714h-3.994Z" />
+    </svg>
+  ),
+  Isha: (
+    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g fill="currentColor">
+        <path d="M16.0451 14.8636C16.0451 12.0092 17.6175 9.49593 19.9474 8.16538C20.5327 7.82421 21.164 7.56265 21.8411 7.39206C21.2558 6.94854 20.6246 6.57326 19.9474 6.26621C18.7538 5.73171 17.4339 5.43604 16.0451 5.43604C10.7886 5.43604 6.51904 9.66651 6.51904 14.875C6.51904 20.0835 10.7886 24.314 16.0451 24.314C17.4339 24.314 18.7538 24.0183 19.9474 23.4838C20.6246 23.1767 21.2558 22.8015 21.8411 22.3579C21.1755 22.1874 20.5327 21.9144 19.9474 21.5846C17.6175 20.2427 16.0451 17.7408 16.0451 14.8864V14.8636ZM16.0451 22.6081C11.7412 22.6081 8.22915 19.1396 8.22915 14.8636C8.22915 10.5877 11.7297 7.11913 16.0451 7.11913C16.7453 7.11913 17.4224 7.21011 18.0651 7.38069C15.8041 9.10927 14.335 11.8159 14.335 14.8636C14.335 17.9114 15.7926 20.618 18.0651 22.3466C17.4224 22.5172 16.7453 22.6081 16.0451 22.6081Z" />
+        <path d="M6.39277 21.8915L3.42017 24.8369L4.62528 26.031L7.55197 23.1311C7.13879 22.7444 6.74856 22.3236 6.39277 21.8801V21.8915Z" />
+        <path d="M23.6431 22.915L26.7993 26.0424L28.0044 24.8483L24.7678 21.6414C24.4235 22.0962 24.0562 22.5284 23.6431 22.9264V22.915Z" />
+        <path d="M14.6221 26.2244V30H16.3322V26.2244C16.0452 26.2471 15.7698 26.2585 15.4829 26.2585C15.1959 26.2585 14.909 26.2585 14.6335 26.2244H14.6221Z" />
+        <path d="M3.94817 15.7165C3.92521 15.4322 3.91374 15.1593 3.91374 14.875C3.91374 14.5907 3.92521 14.3064 3.94817 14.0334H0V15.7279H3.94817V15.7165Z" />
+        <path d="M3.40869 4.9015L6.38129 7.84692C6.73709 7.4034 7.11584 6.98263 7.54049 6.59597L4.6138 3.69604L3.40869 4.89013V4.9015Z" />
+        <path d="M28.0044 4.90136L26.7993 3.70728L23.6431 6.83464C24.0448 7.23267 24.4235 7.66482 24.7678 8.11971L28.0044 4.91273V4.90136Z" />
+        <path d="M14.6221 3.77559C14.909 3.75284 15.1845 3.74147 15.4714 3.74147C15.7583 3.74147 16.0453 3.74147 16.3207 3.77559V0H14.6106V3.77559H14.6221Z" />
+        <path d="M27.0173 14.0219H27.0059C27.0288 14.3062 27.0403 14.5791 27.0403 14.8634C27.0403 15.1477 27.0288 15.432 27.0059 15.705H30.9999V14.0105H27.0173V14.0219Z" />
+      </g>
+    </svg>
+  ),
+};
 
 const FAQ_ITEMS = [
   {
@@ -42,6 +81,7 @@ const QUOTES = [
 export default async function HomePage() {
   const board = await getBoardMembers().catch(() => []);
   const donation = await getDonationTotal().catch(() => null);
+  const contactFields = await getContactFormFields().catch(() => undefined);
   const prayerTimes = getTodayPrayerTimes();
   return (
     <>
@@ -185,7 +225,7 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box"><div className="image"><img src="/assets/images/causes-1.jpg" alt="PayPal donation" /></div></div>
+                  <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/paypal-logo.svg" alt="PayPal" /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-credit-card"></i> PayPal</div>
                     <div className="h4 title">Give securely online through our BCMA PayPal account</div>
@@ -198,7 +238,7 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box"><div className="image"><img src="/assets/images/causes-2.jpg" alt="Interac e-Transfer" /></div></div>
+                  <div className="image-box logo-frame"><div className="image logo-badge"><img src="/assets/images/interac-logo.png" alt="Interac e-Transfer" /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-money-bill-transfer"></i> Interac e-Transfer</div>
                     <div className="h4 title">Send your donation directly by e-Transfer</div>
@@ -211,7 +251,7 @@ export default async function HomePage() {
             <div className="col-xl-4 col-md-6">
               <div className="causes-block give-block">
                 <div className="inner-block">
-                  <div className="image-box"><div className="image"><img src="/assets/images/causes-3.jpg" alt="Cheque or bank transfer" /></div></div>
+                  <div className="image-box logo-frame"><div className="image"><img src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque or bank transfer" /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-hand-holding-dollar"></i> Cash / Cheque / Bank Transfer</div>
                     <div className="h4 title">Prefer to give in person or by cheque?</div>
@@ -247,7 +287,7 @@ export default async function HomePage() {
               <div className="col-lg-4 col-md-6" key={name}>
                 <div className="time-block">
                   <div className="icon">
-                    <svg width="31" height="30" viewBox="0 0 31 30" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M25.02 15.299c0-5.268-4.269-9.548-9.526-9.548s-9.526 4.28-9.526 9.548c0 .667.069 1.311.195 1.944-1.882.506-3.707 1.161-5.474 1.978.172.552.378 1.081.608 1.599C3.73 26.227 9.147 30 15.46 30c6.312 0 11.741-3.773 14.163-9.191.229-.518.436-1.059.608-1.611-1.756-.805-3.569-1.449-5.429-1.955.126-.621.195-1.277.195-1.944h.023Z" /></svg>
+                    {PRAYER_ICONS[name]}
                     <div className="h5 title">{name}</div>
                   </div>
                   <div className="content"><div className="h6 title">{time}</div></div>
@@ -258,8 +298,14 @@ export default async function HomePage() {
               <div className="time-block mx-lg-auto">
                 <div className="icon">
                   <svg width="30" height="39" viewBox="0 0 30 39" xmlns="http://www.w3.org/2000/svg" strokeLinejoin="round" strokeLinecap="round">
-                    <path d="M13.962 12.319c.49 1.198 2.163 1.332 2.912.272l.721-1.019 1.576-.115.371-2.434s.705-.462 1.247-1.403L11.079 3.146c-.969 1.557-.786 3.097-.786 3.097L9.042 8.724l4.659 2.779c.078.313.167.583.261.816Z" fill="#F9B024" stroke="#144E97" strokeWidth=".738" />
-                    <path d="M28.995 29.754c-.448-.687-1.226-1.089-2.052-1.089l-7.518-1.108c-.949.467-2.015.826-2.015.826s1.279 6.54-14.99 9.342c.366.166.768.258 1.187.258h18.209c8.307 0 6.67-1.545 7.537-4.583.515-1.803.272-2.681-.357-3.646Z" fill="#144E97" stroke="#144E97" strokeWidth=".738" />
+                    <path d="M13.962 12.319c.49 1.198 2.163 1.332 2.912.272l.721-1.019 1.576-.115.371-2.434s.705-.462 1.247-1.403L11.079 3.146c-.969 1.557-.786 3.097-.786 3.097L9.042 8.724l4.659 2.779c.078.313.167.583.261.816Z" fill="#C7DC49" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M28.995 29.754c-.448-.687-1.226-1.089-2.052-1.089l-7.518-1.108c-.949.467-2.015.826-2.015.826s1.279 6.54-14.99 9.342c.366.166.768.258 1.187.258h18.209c8.307 0 6.67-1.545 7.537-4.583.515-1.803.272-2.681-.357-3.646Z" fill="#10551F" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M21.393 5.649c.07-.997-.238-1.993-.772-2.841C18.258-.949 14.094.754 14.094.754c-1.546.616-2.465 1.507-3.016 2.392l9.711 4.473c.296-.513.547-1.163.604-1.97Z" fill="#10551F" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M24.656 21.778c.921-.739 1.467-1.432 1.776-2.049.449-.898-.656-1.777-1.429-1.138-.609.504-1.239.758-1.893.729l1.548 2.458Z" fill="#C7DC49" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M13.761 10.256s-.217.685-.061 1.246" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M14.002 33.754h9.106" stroke="#C7DC49" strokeWidth=".738" />
+                    <path d="M17.411 28.383s1.066-.359 2.015-.827c3.569-2.112 5.354-5.581 5.354-5.581l-1.808-2.871-5.98 4.111-2.782-8.957-.51-2.756-4.659-2.779s-2.138.387-4.847 3.798C1.728 15.628.693 28.113.385 32.821c-.077 1.178.127 2.352.592 3.438.285.664.808 1.178 1.444 1.466 16.269-2.803 14.99-9.342 14.99-9.342Z" fill="#10551F" stroke="#10551F" strokeWidth=".738" />
+                    <path d="M8.004 20.32 12.08 27.98c.556 1.045 1.662 1.698 2.854 1.647 1.093-.048 2.566-.347 4.612-1.332" stroke="#C7DC49" strokeWidth=".738" />
                   </svg>
                   <div className="h5 title">Jummah</div>
                 </div>
@@ -351,13 +397,11 @@ export default async function HomePage() {
       {/* ===== Marquee ===== */}
       <section className="marquee-section">
         <div className="marquee">
-          {[
-            ["Jummah Every Friday", "Donate Now", "Arabic Classes"],
-            ["Follow @ccic_bcma", "Jummah Every Friday", "New to Islam? Ask Us"],
-            ["Donate Now", "Arabic Classes", "Follow @ccic_bcma"],
-          ].map((group, i) => (
+          {[0, 1, 2].map((i) => (
             <div className="marquee-group" key={i}>
-              {group.map((t) => <div className="text" key={t}>{t}</div>)}
+              {["Jummah Every Friday", "Donate Now", "Arabic Classes", "Follow @ccic_bcma", "New to Islam? Ask Us"].map((t) => (
+                <div className="text" key={t}>{t}</div>
+              ))}
             </div>
           ))}
         </div>
@@ -476,7 +520,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="col-lg-7">
-                <HomeContactForm />
+                <HomeContactForm fields={contactFields} />
               </div>
             </div>
           </div>
@@ -489,19 +533,34 @@ export default async function HomePage() {
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
                     <i className="fa-solid fa-envelope"></i>
-                    <div><p className="text">cariboo.secretary@thebcma.com</p></div>
+                    <div><p className="text text-nowrap"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></p></div>
                   </div></div>
                 </div>
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
-                    <InstagramIcon />
-                    <div><p className="text">@ccic_bcma</p><p className="text">Williams Lake Muslims (Facebook)</p></div>
+                    <div className="contact-icons">
+                      <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><InstagramIcon /></a>
+                      <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FacebookIcon /></a>
+                    </div>
+                    <div>
+                      <p className="text"><a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">@ccic_bcma</a></p>
+                      <p className="text"><a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">Williams Lake Muslims</a></p>
+                    </div>
                   </div></div>
                 </div>
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box after-none">
                     <i className="fa-solid fa-location-dot"></i>
-                    <div><p className="text">1000 Huckvale Pl,</p><p className="text">Williams Lake, BC V2G 4L2</p></div>
+                    <div>
+                      <a
+                        href="https://www.google.com/maps/search/?api=1&query=1000+Huckvale+Pl%2C+Williams+Lake%2C+BC+V2G+4L2"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <p className="text">1000 Huckvale Pl,</p>
+                        <p className="text">Williams Lake, BC V2G 4L2</p>
+                      </a>
+                    </div>
                   </div></div>
                 </div>
               </div>

@@ -89,6 +89,7 @@ export default function Header() {
                     <Image src="/assets/images/BCMA_Logo.jpg" alt="BC Muslim Association — Central Cariboo Islamic Center" width={200} height={200} priority />
                   </Link>
                 </div>
+                <Link href="/" className="site-name-mobile">Central Cariboo Islamic Center</Link>
               </div>
               <div className="nav-outer">
                 <nav className="nav main-menu">
@@ -151,8 +152,11 @@ export default function Header() {
       <div className={`sticky-header${scrolled ? " fixed-header" : ""}`}>
         <div className="auto-container">
           <div className="inner-container">
-            <div className="logo">
-              <Link href="/"><Image src="/assets/images/BCMA_Logo.jpg" alt="BCMA logo" width={160} height={160} /></Link>
+            <div className="sticky-logo-box">
+              <div className="logo">
+                <Link href="/"><Image src="/assets/images/BCMA_Logo.jpg" alt="BCMA logo" width={160} height={160} /></Link>
+              </div>
+              <Link href="/" className="sticky-header-name">Central Cariboo Islamic Center</Link>
             </div>
             <div className="nav-outer">
               <nav className="main-menu">
