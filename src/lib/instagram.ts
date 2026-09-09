@@ -1,8 +1,15 @@
 // Server-only Instagram API (with Instagram Login) client. Pulls every
 // video/Reel from the CCIC Instagram Business account directly, so new
-// uploads show up on the gallery automatically (revalidated hourly) with no
-// manual URL list to keep updating — unlike a plain oEmbed of hand-picked
-// post links.
+// uploads show up on the gallery automatically with no manual URL list to
+// keep updating — unlike a plain oEmbed of hand-picked post links.
+//
+// Uses cache: "no-store" (matching wixFetch in wix.ts) rather than a
+// revalidate window: this keeps the gallery page dynamic (server-rendered
+// per request) instead of statically prerendered at build time. A static
+// page would freeze whatever this call returned at build time into the HTML
+// forever — including an empty [] if the build environment's network/DNS
+// can't reach graph.instagram.com, which silently hides the section with no
+// way to recover short of a full rebuild from a working environment.
 //
 // This uses "Instagram API with Instagram Login" (app dashboard: Instagram >
 // API setup with Instagram login), NOT the older Facebook-Login-based
@@ -62,7 +69,7 @@ export async function getInstagramVideos(): Promise<InstagramVideo[]> {
   const url = `https://graph.instagram.com/${GRAPH_API_VERSION}/${USER_ID}/media?fields=${fields}&access_token=${ACCESS_TOKEN}`;
 
   try {
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) {
       console.error(`Instagram Graph API failed: ${res.status} ${await res.text()}`);
       return [];
