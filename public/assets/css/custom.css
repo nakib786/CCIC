@@ -9,6 +9,16 @@
   overflow: visible;
 }
 
+/* bootstrap.min.css sets `scroll-behavior: smooth` on :root. ScrollSmoother
+   owns scrolling here and calls scrollTo(0, false) on route change (see
+   SmoothScroll.tsx) expecting an instant jump — with the CSS behaviour left
+   in place the browser animates that call instead, so a page navigation
+   lands mid-scroll (wherever the previous page had scrolled to) rather than
+   at the top. */
+:root {
+  scroll-behavior: auto;
+}
+
 /* ---- Header logo (BCMA logo sits on a white plate so it reads on dark
    mobile-menu / footer backgrounds) ---- */
 .logo-box .logo a,
@@ -131,6 +141,17 @@
   .sticky-header-name {
     font-size: 13px;
   }
+}
+/* theme.css's own font-family for these links is scoped to
+   `.header-style-one .sticky-header .main-menu .navigation > li > a` — but
+   the sticky header portals straight to <body> (see the portal comment in
+   Header.tsx) to escape ScrollSmoother's transform, so it's no longer a DOM
+   descendant of `.header-style-one` and that rule never matches. The links
+   fell back to the inherited body font (Manrope, sans-serif) instead of the
+   serif heading font (Marcellus/Amiri) every other nav link on the site
+   uses, so only the frozen/sticky header's menu text looked different. */
+.sticky-header .main-menu .navigation > li > a {
+  font-family: var(--heading-font-family);
 }
 
 /* ---- Header contact widget: no fabricated phone number, address + email ---- */
