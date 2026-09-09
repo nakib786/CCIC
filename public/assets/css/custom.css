@@ -547,6 +547,19 @@
 }
 
 /* ---- Hero banner mouse-ripple effect (jQuery Ripples plugin) ---- */
+.banner-section .outer-box .sec-bg.banner-ripple {
+  background-image: url(../images/banner-bg-new.jpg);
+  background-size: cover;
+  background-position: center;
+}
+/* Swap to the portrait-cropped shot below the tablet breakpoint so the
+   mosque and minaret stay framed instead of being cover-cropped from the
+   wide desktop photo. */
+@media (max-width: 767.98px) {
+  .banner-section .outer-box .sec-bg.banner-ripple {
+    background-image: url(../images/banner-bg-new-mobile.jpg);
+  }
+}
 .banner-section .outer-box .sec-bg.banner-ripple canvas {
   position: absolute;
   inset: 0;

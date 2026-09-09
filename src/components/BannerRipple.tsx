@@ -35,10 +35,6 @@ export default function BannerRipple() {
   }, []);
 
   return (
-    <div
-      className="sec-bg banner-ripple"
-      ref={ref}
-      style={{ backgroundImage: "url('/assets/images/banner-bg.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}
-    />
+    <div className="sec-bg banner-ripple" ref={ref} />
   );
 }
