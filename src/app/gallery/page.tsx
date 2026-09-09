@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import GalleryGrid from "@/components/GalleryGrid";
+import InstagramEmbed, { InstagramEmbedScript } from "@/components/InstagramEmbed";
+import VideoGalleryGrid from "@/components/VideoGalleryGrid";
+import { getInstagramVideos } from "@/lib/instagram";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -24,7 +27,16 @@ const IMAGES = [
   { src: "/assets/images/contact-image.jpg", alt: "Masjid grounds" },
 ];
 
-export default function GalleryPage() {
+// Instagram photo post permalinks to embed (e.g. "https://www.instagram.com/p/POST_ID/")
+// — paste real ones from @ccic_bcma here.
+const INSTAGRAM_PHOTOS: string[] = [];
+
+export default async function GalleryPage() {
+  // Videos/Reels are pulled live from the Instagram Graph API (see
+  // src/lib/instagram.ts) — every current and future upload shows up here
+  // automatically, no manual URL list needed.
+  const instagramVideos = await getInstagramVideos();
+
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Gallery" }]} />
@@ -51,6 +63,40 @@ export default function GalleryPage() {
           <GalleryGrid images={IMAGES} />
         </div>
       </section>
+
+      {INSTAGRAM_PHOTOS.length > 0 && (
+        <section className="pt-0 pb-120">
+          <div className="container">
+            <div className="row justify-content-center mb-50">
+              <div className="col-lg-7 text-center">
+                <span className="sub-title section-eyebrow">From Instagram</span>
+                <h2 className="h2 title mt-10">Latest Photos</h2>
+              </div>
+            </div>
+            <div className="instagram-embed-grid">
+              {INSTAGRAM_PHOTOS.map((url) => (
+                <InstagramEmbed key={url} url={url} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {instagramVideos.length > 0 && (
+        <section className="pt-0 pb-120">
+          <div className="container">
+            <div className="row justify-content-center mb-50">
+              <div className="col-lg-7 text-center">
+                <span className="sub-title section-eyebrow">From Instagram</span>
+                <h2 className="h2 title mt-10">Latest Videos &amp; Reels</h2>
+              </div>
+            </div>
+            <VideoGalleryGrid videos={instagramVideos} />
+          </div>
+        </section>
+      )}
+
+      {INSTAGRAM_PHOTOS.length > 0 && <InstagramEmbedScript />}
     </>
   );
 }

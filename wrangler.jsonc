@@ -24,7 +24,8 @@
   },
   "vars": {
     "WIX_SITE_ID": "235e2856-9df4-48ff-ba42-25363a058856",
-    "WIX_CLIENT_ID": "39efb562-774e-4ce3-ab40-58d2b9074599"
+    "WIX_CLIENT_ID": "39efb562-774e-4ce3-ab40-58d2b9074599",
+    "INSTAGRAM_USER_ID": "17841470812387401"
   },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
