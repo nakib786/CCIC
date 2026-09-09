@@ -306,14 +306,6 @@
 }
 .lightbox-close:hover { background: var(--theme-color1); color: #14213A; }
 
-.instagram-embed-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-  justify-items: center;
-}
-.instagram-embed-grid > div { width: 100%; max-width: 400px; }
-
 /* ---- Donate page fundraiser progress bar: theme.css only styles
    .donation-progress/.progress-track/.fund-raise/.fund-goal when nested
    under .causes-block .inner-block .content-box (a card widget), but this

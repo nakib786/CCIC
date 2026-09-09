@@ -1,7 +1,7 @@
 // Server-only Instagram API (with Instagram Login) client. Pulls every
-// video/Reel from the CCIC Instagram Business account directly, so new
-// uploads show up on the gallery automatically with no manual URL list to
-// keep updating — unlike a plain oEmbed of hand-picked post links.
+// photo and video/Reel from the CCIC Instagram Business account directly, so
+// new uploads show up on the gallery automatically with no manual URL list
+// to keep updating.
 //
 // Uses cache: "no-store" (matching wixFetch in wix.ts) rather than a
 // revalidate window: this keeps the gallery page dynamic (server-rendered
@@ -46,6 +46,14 @@ export type InstagramVideo = {
   timestamp: string;
 };
 
+export type InstagramPhoto = {
+  id: string;
+  caption?: string;
+  mediaUrl: string;
+  permalink: string;
+  timestamp: string;
+};
+
 type GraphMediaItem = {
   id: string;
   caption?: string;
@@ -56,13 +64,10 @@ type GraphMediaItem = {
   timestamp: string;
 };
 
-/**
- * Every video and Reel currently on the account (Reels report
- * media_type "VIDEO" too, just with media_product_type "REELS"). Returns []
- * — rather than throwing — when the integration isn't configured yet or the
- * API call fails, so the gallery page simply omits the section.
- */
-export async function getInstagramVideos(): Promise<InstagramVideo[]> {
+// Next.js dedupes identical fetch() calls (same URL) made during the same
+// request, so getInstagramVideos() and getInstagramPhotos() calling this
+// separately still only hits the Graph API once per page load.
+async function fetchInstagramMedia(): Promise<GraphMediaItem[]> {
   if (!ACCESS_TOKEN || !USER_ID) return [];
 
   const fields = "id,caption,media_type,media_url,thumbnail_url,permalink,timestamp";
@@ -74,20 +79,49 @@ export async function getInstagramVideos(): Promise<InstagramVideo[]> {
       console.error(`Instagram Graph API failed: ${res.status} ${await res.text()}`);
       return [];
     }
-
     const data = (await res.json()) as { data: GraphMediaItem[] };
-    return data.data
-      .filter((item) => item.media_type === "VIDEO")
-      .map((item) => ({
-        id: item.id,
-        caption: item.caption,
-        mediaUrl: item.media_url,
-        thumbnailUrl: item.thumbnail_url,
-        permalink: item.permalink,
-        timestamp: item.timestamp,
-      }));
+    return data.data ?? [];
   } catch (err) {
     console.error("Instagram Graph API request failed:", err);
     return [];
   }
+}
+
+/**
+ * Every video and Reel currently on the account (Reels report
+ * media_type "VIDEO" too, just with media_product_type "REELS"). Returns []
+ * — rather than throwing — when the integration isn't configured yet or the
+ * API call fails, so the gallery page simply omits the section.
+ */
+export async function getInstagramVideos(): Promise<InstagramVideo[]> {
+  const media = await fetchInstagramMedia();
+  return media
+    .filter((item) => item.media_type === "VIDEO")
+    .map((item) => ({
+      id: item.id,
+      caption: item.caption,
+      mediaUrl: item.media_url,
+      thumbnailUrl: item.thumbnail_url,
+      permalink: item.permalink,
+      timestamp: item.timestamp,
+    }));
+}
+
+/**
+ * Every photo post currently on the account, including multi-photo carousel
+ * posts (shown via their cover image) — excludes videos/Reels. Skips any
+ * item missing media_url rather than showing a broken image (this can
+ * happen for the same copyright reasons documented on getInstagramVideos).
+ */
+export async function getInstagramPhotos(): Promise<InstagramPhoto[]> {
+  const media = await fetchInstagramMedia();
+  return media
+    .filter((item) => (item.media_type === "IMAGE" || item.media_type === "CAROUSEL_ALBUM") && item.media_url)
+    .map((item) => ({
+      id: item.id,
+      caption: item.caption,
+      mediaUrl: item.media_url,
+      permalink: item.permalink,
+      timestamp: item.timestamp,
+    }));
 }

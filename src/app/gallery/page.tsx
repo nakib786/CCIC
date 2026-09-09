@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import InstagramEmbed, { InstagramEmbedScript } from "@/components/InstagramEmbed";
+import PhotoGalleryGrid from "@/components/PhotoGalleryGrid";
 import VideoGalleryGrid from "@/components/VideoGalleryGrid";
-import { getInstagramVideos } from "@/lib/instagram";
+import { getInstagramPhotos, getInstagramVideos } from "@/lib/instagram";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -11,15 +11,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/gallery/" },
 };
 
-// Instagram photo post permalinks to embed (e.g. "https://www.instagram.com/p/POST_ID/")
-// — paste real ones from @ccic_bcma here.
-const INSTAGRAM_PHOTOS: string[] = [];
-
 export default async function GalleryPage() {
-  // Videos/Reels are pulled live from the Instagram Graph API (see
-  // src/lib/instagram.ts) — every current and future upload shows up here
-  // automatically, no manual URL list needed.
-  const instagramVideos = await getInstagramVideos();
+  // Photos and videos/Reels are both pulled live from the Instagram Graph
+  // API (see src/lib/instagram.ts) — every current and future upload shows
+  // up here automatically, no manual URL list needed.
+  const [instagramPhotos, instagramVideos] = await Promise.all([
+    getInstagramPhotos(),
+    getInstagramVideos(),
+  ]);
 
   return (
     <>
@@ -47,7 +46,7 @@ export default async function GalleryPage() {
         </div>
       </section>
 
-      {INSTAGRAM_PHOTOS.length > 0 && (
+      {instagramPhotos.length > 0 && (
         <section className="pt-0 pb-120">
           <div className="container">
             <div className="row justify-content-center mb-50">
@@ -56,11 +55,7 @@ export default async function GalleryPage() {
                 <h2 className="h2 title mt-10">Latest Photos</h2>
               </div>
             </div>
-            <div className="instagram-embed-grid">
-              {INSTAGRAM_PHOTOS.map((url) => (
-                <InstagramEmbed key={url} url={url} />
-              ))}
-            </div>
+            <PhotoGalleryGrid photos={instagramPhotos} />
           </div>
         </section>
       )}
@@ -78,8 +73,6 @@ export default async function GalleryPage() {
           </div>
         </section>
       )}
-
-      {INSTAGRAM_PHOTOS.length > 0 && <InstagramEmbedScript />}
     </>
   );
 }
