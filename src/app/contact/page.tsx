@@ -3,7 +3,8 @@ import Link from "next/link";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import HomeContactForm from "@/components/HomeContactForm";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
-import { getContactFormFields } from "@/lib/wix";
+import { addressLines, ADDRESS_LINE, CONTACT_EMAIL } from "@/lib/site";
+import { getContactFormFields, getSiteSettings } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -13,6 +14,10 @@ export const metadata: Metadata = {
 
 export default async function ContactPage() {
   const contactFields = await getContactFormFields().catch(() => undefined);
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
+  const address = settings.address ?? ADDRESS_LINE;
+  const [addressLine1, addressLine2] = addressLines(address);
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Contact" }]} />
@@ -35,7 +40,7 @@ export default async function ContactPage() {
                   </div>
                   <div className="map-image">
                     <iframe
-                      src="https://www.google.com/maps?q=1000+Huckvale+Pl,+Williams+Lake,+BC+V2G+4L2&output=embed"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
                       width="100%"
                       height={420}
                       style={{ border: 0, display: "block" }}
@@ -47,7 +52,7 @@ export default async function ContactPage() {
                 </div>
               </div>
               <div className="col-lg-7">
-                <HomeContactForm fields={contactFields} />
+                <HomeContactForm fields={contactFields} contactEmail={contactEmail} />
               </div>
             </div>
           </div>
@@ -60,7 +65,7 @@ export default async function ContactPage() {
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
                     <i className="fa-solid fa-envelope"></i>
-                    <div><p className="text text-nowrap"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></p></div>
+                    <div><p className="text text-nowrap"><a href={`mailto:${contactEmail}`}>{contactEmail}</a></p></div>
                   </div></div>
                 </div>
                 <div className="col-lg-4 col-sm-6">
@@ -80,12 +85,12 @@ export default async function ContactPage() {
                     <i className="fa-solid fa-location-dot"></i>
                     <div>
                       <a
-                        href="https://www.google.com/maps/search/?api=1&query=1000+Huckvale+Pl%2C+Williams+Lake%2C+BC+V2G+4L2"
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <p className="text">1000 Huckvale Pl,</p>
-                        <p className="text">Williams Lake, BC V2G 4L2</p>
+                        <p className="text">{addressLine1},</p>
+                        <p className="text">{addressLine2}</p>
                       </a>
                     </div>
                   </div></div>

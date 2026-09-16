@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTodayGregorianDate, getTodayHijriDate, getTodayPrayerTimes } from "@/lib/prayerTimes";
+import { getTodayGregorianDate, getTodayHijriDate, getTodayIqamaTimes, getTodayPrayerTimes } from "@/lib/prayerTimes";
 
 // Public JSON feed of today's salah times and Hijri date for Williams Lake,
 // BC — computed with the same method IslamicFinder lists for this location
@@ -32,6 +32,11 @@ export async function GET() {
       hijri: getTodayHijriDate(now),
     },
     times: getTodayPrayerTimes(now),
+    iqama: {
+      ...getTodayIqamaTimes(now),
+      approximate: true,
+      note: "Approximate — Adhan time plus 15 minutes. Confirm the exact congregation time at the masjid or our social pages.",
+    },
   };
 
   return NextResponse.json(body, {

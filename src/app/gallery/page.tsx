@@ -35,7 +35,7 @@ export default async function GalleryPage() {
           <div className="row justify-content-center mb-50">
             <div className="col-lg-7 text-center">
               <span className="sub-title section-eyebrow">Community Life</span>
-              <h2 className="h2 title mt-10">A Glimpse of Our Masjid</h2>
+              <h2 className="h2 title mt-10">A Glimpse of Our Islamic Center</h2>
               <p className="text mt-20">
                 Photos and videos from our gatherings and events are posted regularly — follow{" "}
                 <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer" className="text-navy">@ccic_bcma</a> on Instagram or{" "}

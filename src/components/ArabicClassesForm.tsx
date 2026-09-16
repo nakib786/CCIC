@@ -2,12 +2,13 @@
 
 import { useState, type FormEvent } from "react";
 import ToggleGroup from "@/components/ToggleGroup";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 // Values must exactly match the choice options on the real Wix form field.
 const ONLINE = "Online (Zoom, Teams, WhatsApp)";
 const IN_PERSON = "In- Person";
 
-export default function ArabicClassesForm() {
+export default function ArabicClassesForm({ contactEmail = CONTACT_EMAIL }: { contactEmail?: string }) {
   const [preference, setPreference] = useState(ONLINE);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
@@ -31,7 +32,7 @@ export default function ArabicClassesForm() {
       form.reset();
     } catch {
       const body = encodeURIComponent(`Name: ${firstName} ${lastName}\nEmail: ${email}\nDelivery preference: ${preference}`);
-      window.location.href = `mailto:cariboo.secretary@thebcma.com?subject=${encodeURIComponent("Arabic Classes Registration")}&body=${body}`;
+      window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent("Arabic Classes Registration")}&body=${body}`;
       setStatus("error");
     }
   };

@@ -22,6 +22,7 @@ export default function Footer() {
             <li><Link href="/gallery/">Gallery</Link></li>
             <li><Link href="/media/">Media</Link></li>
             <li><Link href="/donate/">Donate</Link></li>
+            <li><Link href="/tax-receipt/">Tax Receipt</Link></li>
             <li><Link href="/contact/">Contact</Link></li>
           </ul>
           <ul className="social-list">

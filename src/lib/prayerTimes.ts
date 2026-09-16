@@ -62,6 +62,14 @@ export type DailyPrayerTimes = {
   isha: string;
 };
 
+export type IqamaTimes = {
+  fajr: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+};
+
 export type HijriDate = {
   day: number;
   month: number;
@@ -79,6 +87,25 @@ export function getTodayPrayerTimes(now: Date = new Date()): DailyPrayerTimes {
     asr: timeFormatter.format(times.asr),
     maghrib: timeFormatter.format(times.maghrib),
     isha: timeFormatter.format(times.isha),
+  };
+}
+
+// No fixed iqamah schedule is configured per masjid yet, so we estimate it
+// as Adhan + a flat offset and label it approximate everywhere it's shown.
+const IQAMA_OFFSET_MINUTES = 15;
+
+function withIqamaOffset(adhanTime: Date): Date {
+  return new Date(adhanTime.getTime() + IQAMA_OFFSET_MINUTES * 60_000);
+}
+
+export function getTodayIqamaTimes(now: Date = new Date()): IqamaTimes {
+  const times = new PrayerTimes(WILLIAMS_LAKE, now, calculationParams());
+  return {
+    fajr: timeFormatter.format(withIqamaOffset(times.fajr)),
+    dhuhr: timeFormatter.format(withIqamaOffset(times.dhuhr)),
+    asr: timeFormatter.format(withIqamaOffset(times.asr)),
+    maghrib: timeFormatter.format(withIqamaOffset(times.maghrib)),
+    isha: timeFormatter.format(withIqamaOffset(times.isha)),
   };
 }
 

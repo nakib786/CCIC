@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { SITE_NAME } from "@/lib/site";
+import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
+import { getSiteSettings } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "Media",
@@ -94,7 +95,9 @@ function MediaCard({ item }: { item: MediaItem }) {
   );
 }
 
-export default function MediaPage() {
+export default async function MediaPage() {
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
   // Press mentions as structured data, matching what's visibly listed below —
   // real, independently-published coverage that reinforces this as a genuine
   // local entity (the kind of signal Google's quality guidelines call
@@ -192,7 +195,7 @@ export default function MediaPage() {
             <div className="col-lg-8 text-center">
               <p className="text">
                 Are we missing an article, interview or award? Let us know at{" "}
-                <a href="mailto:cariboo.secretary@thebcma.com" className="text-navy">cariboo.secretary@thebcma.com</a>{" "}
+                <a href={`mailto:${contactEmail}`} className="text-navy">{contactEmail}</a>{" "}
                 and we&apos;ll add it here. For day-to-day updates, follow{" "}
                 <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer" className="text-navy">@ccic_bcma</a> on Instagram or{" "}
                 <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer" className="text-navy">Williams Lake Muslims</a> on Facebook.

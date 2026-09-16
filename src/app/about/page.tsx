@@ -4,7 +4,8 @@ import Link from "next/link";
 import ArabicClassesForm from "@/components/ArabicClassesForm";
 import BoardGrid from "@/components/BoardGrid";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
-import { getBoardMembers } from "@/lib/wix";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { getBoardMembers, getSiteSettings } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "About Us",
@@ -30,6 +31,8 @@ const SERVICES = [
 
 export default async function AboutPage() {
   const board = await getBoardMembers().catch(() => []);
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "About" }]} />
@@ -99,7 +102,7 @@ export default async function AboutPage() {
                     <div className="tab-pane fade" id="vision" role="tabpanel">
                       <div className="about-block">
                         <div className="inner-box">
-                          A masjid that welcomes every worshipper with peace, compassion and respect for all
+                          An Islamic center that welcomes every worshipper with peace, compassion and respect for all
                           individuals — a lasting home for prayer, learning and service for the Muslim community of
                           Williams Lake and the wider Cariboo region.
                         </div>
@@ -179,7 +182,7 @@ export default async function AboutPage() {
                   will follow up with schedule details.
                 </p>
               </div>
-              <ArabicClassesForm />
+              <ArabicClassesForm contactEmail={contactEmail} />
             </div>
           </div>
         </div>

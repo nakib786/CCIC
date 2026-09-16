@@ -126,7 +126,18 @@ export async function getBoardMembers(): Promise<BoardMember[]> {
     .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 }
 
-export type DonationTotal = { raised: number; target: number };
+export type DonationTotal = { raised: number; target: number; lastUpdated: string | null };
+
+// Wix Data returns its system date fields (_createdDate/_updatedDate) as
+// extended-JSON ({ "$date": "<ISO8601>" }) rather than a plain string —
+// confirmed against a live query-items response for this collection.
+function wixDateToIso(value: unknown): string | null {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object" && typeof (value as { $date?: unknown }).$date === "string") {
+    return (value as { $date: string }).$date;
+  }
+  return null;
+}
 
 export async function getDonationTotal(): Promise<DonationTotal | null> {
   const data = await wixFetch<{ dataItems: Array<{ data: Record<string, any> }> }>(
@@ -141,7 +152,39 @@ export async function getDonationTotal(): Promise<DonationTotal | null> {
   );
   const item = data.dataItems[0]?.data;
   if (!item) return null;
-  return { raised: Number(item.number) || 0, target: Number(item.target) || 0 };
+  return {
+    raised: Number(item.number) || 0,
+    target: Number(item.target) || 0,
+    lastUpdated: wixDateToIso(item._updatedDate),
+  };
+}
+
+export type SiteSettings = { email: string | null; address: string | null };
+
+/**
+ * Reads the site's contact email and mailing address from the "SiteSettings"
+ * Wix Data collection (a single-item collection — see the Wix CMS/Content
+ * Manager) so the site owner can update them from the Wix dashboard without
+ * a code change/redeploy. Callers should fall back to the CONTACT_EMAIL /
+ * ADDRESS_LINE constants in @/lib/site on failure (collection missing/empty,
+ * API error, etc) or for any field not yet set.
+ */
+export async function getSiteSettings(): Promise<SiteSettings> {
+  const data = await wixFetch<{ dataItems: Array<{ data: Record<string, any> }> }>(
+    "/wix-data/v2/items/query",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        dataCollectionId: "SiteSettings",
+        query: { paging: { limit: 1 } },
+      }),
+    }
+  );
+  const item = data.dataItems[0]?.data ?? {};
+  return {
+    email: typeof item.email === "string" && item.email ? item.email : null,
+    address: typeof item.address === "string" && item.address ? item.address : null,
+  };
 }
 
 const ARABIC_CLASSES_FORM_ID = "c7857641-eba4-4ced-9ce7-d06b6dc54011";
@@ -254,6 +297,66 @@ export async function submitContactForm(fields: Record<string, string>): Promise
         formId: CONTACT_FORM_ID,
         submissions: fields,
       },
+    }),
+  });
+}
+
+// "Tax Receipt Request" Wix Forms schema (Forms & Submissions app), created
+// for donors who gave by cash/cheque/e-Transfer/bank transfer/PayPal and need
+// an official CRA donation receipt. Field targets are fixed (not read live
+// like the Contact form) because several fields are structured (address,
+// date, number, dropdown) rather than plain text — see submitTaxReceiptRequest.
+const TAX_RECEIPT_FORM_ID = "0c5cfbb0-b16d-49a6-9e6f-2110c9dcfd1c";
+
+export type TaxReceiptRequestInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  address: {
+    addressLine: string;
+    addressLine2?: string;
+    city: string;
+    // ISO 3166-2 code, e.g. "CA-BC" or "US-NY" — must match the option the
+    // visitor picked from a province/state list for the chosen country.
+    subdivision: string;
+    postalCode: string;
+    // ISO 3166-1 alpha-2, e.g. "CA" or "US".
+    country: string;
+  };
+  // ISO date (YYYY-MM-DD).
+  donationDate: string;
+  donationAmount: number;
+  donationMethod: string;
+  referenceNumber?: string;
+  notes?: string;
+};
+
+export async function submitTaxReceiptRequest(input: TaxReceiptRequestInput): Promise<void> {
+  const submissions: Record<string, unknown> = {
+    first_name_tr01: input.firstName,
+    last_name_tr01: input.lastName,
+    email_tr01: input.email,
+    mailing_address_tr01: {
+      country: input.address.country,
+      subdivision: input.address.subdivision,
+      city: input.address.city,
+      postalCode: input.address.postalCode,
+      addressLine: input.address.addressLine,
+      ...(input.address.addressLine2 ? { addressLine2: input.address.addressLine2 } : {}),
+    },
+    donation_date_tr01: input.donationDate,
+    donation_amount_tr01: input.donationAmount,
+    donation_method_tr01: input.donationMethod,
+  };
+  if (input.phone) submissions.phone_tr01 = input.phone;
+  if (input.referenceNumber) submissions.reference_number_tr01 = input.referenceNumber;
+  if (input.notes) submissions.additional_notes_tr01 = input.notes;
+
+  await wixFetch("/forms/v4/submissions", {
+    method: "POST",
+    body: JSON.stringify({
+      submission: { formId: TAX_RECEIPT_FORM_ID, submissions },
     }),
   });
 }

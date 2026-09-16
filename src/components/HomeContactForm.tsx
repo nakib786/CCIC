@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { ContactFormField } from "@/lib/wix";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 const FALLBACK_FIELDS: ContactFormField[] = [
   { target: "name", label: "Name", placeholder: "Your Name", required: true, kind: "text" },
@@ -11,7 +12,13 @@ const FALLBACK_FIELDS: ContactFormField[] = [
   { target: "message", label: "Message", placeholder: "Write a Message", required: true, kind: "textarea" },
 ];
 
-export default function HomeContactForm({ fields }: { fields?: ContactFormField[] }) {
+export default function HomeContactForm({
+  fields,
+  contactEmail = CONTACT_EMAIL,
+}: {
+  fields?: ContactFormField[];
+  contactEmail?: string;
+}) {
   const formFields = fields && fields.length > 0 ? fields : FALLBACK_FIELDS;
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
@@ -38,7 +45,7 @@ export default function HomeContactForm({ fields }: { fields?: ContactFormField[
       const subject = values.subject || "Message from CCIC website";
       const message = values.message ?? Object.entries(values).map(([k, v]) => `${k}: ${v}`).join("\n");
       const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
-      window.location.href = `mailto:cariboo.secretary@thebcma.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+      window.location.href = `mailto:${contactEmail}?subject=${encodeURIComponent(subject)}&body=${body}`;
       setStatus("error");
     }
   };

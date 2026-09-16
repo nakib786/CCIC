@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/about/", priority: 0.8, changeFrequency: "monthly" },
     { path: "/events/", priority: 0.9, changeFrequency: "daily", lastModified: now },
     { path: "/donate/", priority: 0.8, changeFrequency: "monthly", lastModified: now },
+    { path: "/tax-receipt/", priority: 0.7, changeFrequency: "yearly" },
     { path: "/gallery/", priority: 0.6, changeFrequency: "monthly" },
     { path: "/media/", priority: 0.6, changeFrequency: "monthly" },
     { path: "/contact/", priority: 0.7, changeFrequency: "yearly" },

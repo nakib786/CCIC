@@ -5,7 +5,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import DonationGoalBar from "@/components/DonationGoalBar";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
+import { ADDRESS_LINE, CONTACT_EMAIL } from "@/lib/site";
+import type { DonationTotal } from "@/lib/wix";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -39,6 +42,7 @@ function NavList({ pathname, onLinkClick }: { pathname: string; onLinkClick?: ()
         <ul style={{ display: resourcesOpen ? "block" : undefined }}>
           <li><a href="http://quran.williamslakemuslims.ca" target="_blank" rel="noopener noreferrer">Qur&apos;an Recitations</a></li>
           <li><Link href="/about/#arabic-classes" onClick={onLinkClick}>Arabic Classes</Link></li>
+          <li><Link href="/tax-receipt/" onClick={onLinkClick}>Claim Tax Receipt</Link></li>
         </ul>
         <div
           className={`dropdown-btn${resourcesOpen ? " active" : ""}`}
@@ -54,7 +58,15 @@ function NavList({ pathname, onLinkClick }: { pathname: string; onLinkClick?: ()
   );
 }
 
-export default function Header() {
+export default function Header({
+  contactEmail = CONTACT_EMAIL,
+  address = ADDRESS_LINE,
+  donation = null,
+}: {
+  contactEmail?: string;
+  address?: string;
+  donation?: DonationTotal | null;
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -84,6 +96,25 @@ export default function Header() {
 
   return (
     <header className="main-header header-style-one">
+      {donation && donation.target > 0 && (
+        <div className="goal-highlight-bar">
+          <div className="container goal-highlight-inner">
+            <div className="goal-highlight-label">
+              <i className="fa-solid fa-mosque" aria-hidden="true"></i>
+              <span>Our Building Fund</span>
+            </div>
+            <DonationGoalBar
+              raised={donation.raised}
+              target={donation.target}
+              lastUpdated={donation.lastUpdated}
+              showStats={false}
+              showUpdated={false}
+              size="sm"
+            />
+            <Link href="/donate/" className="goal-highlight-cta">Donate Now</Link>
+          </div>
+        </div>
+      )}
       <div className="outer-container">
         <div className="header-lower">
           <div className="inner-container">
@@ -103,11 +134,11 @@ export default function Header() {
               </div>
               <div className="action-box">
                 <div className="contact-widget">
-                  <a href="https://www.google.com/maps/search/?api=1&query=1000+Huckvale+Pl%2C+Williams+Lake%2C+BC+V2G+4L2" target="_blank" rel="noopener noreferrer">
-                    <i className="icon fa-solid fa-location-dot"></i> <span>1000 Huckvale Pl, Williams Lake</span>
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noopener noreferrer">
+                    <i className="icon fa-solid fa-location-dot"></i> <span>{address}</span>
                   </a>
-                  <a href="mailto:cariboo.secretary@thebcma.com">
-                    <i className="icon fa-solid fa-envelope"></i> <span>cariboo.secretary@thebcma.com</span>
+                  <a href={`mailto:${contactEmail}`}>
+                    <i className="icon fa-solid fa-envelope"></i> <span>{contactEmail}</span>
                   </a>
                 </div>
                 <Link href="/donate/" className="btn-style-five">Donate Now</Link>
@@ -141,7 +172,7 @@ export default function Header() {
               <li>
                 <i className="icon fa-solid fa-envelope"></i>
                 <span className="title">Send Email</span>
-                <div className="text"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></div>
+                <div className="text"><a href={`mailto:${contactEmail}`}>{contactEmail}</a></div>
               </li>
             </ul>
             <ul className="social-links">

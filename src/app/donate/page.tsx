@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import BreadcrumbJsonLd from "@/components/BreadcrumbJsonLd";
 import CopyChip from "@/components/CopyChip";
-import { getDonationTotal } from "@/lib/wix";
+import DonationGoalBar from "@/components/DonationGoalBar";
+import { CONTACT_EMAIL } from "@/lib/site";
+import { getDonationTotal, getSiteSettings } from "@/lib/wix";
 
 export const metadata: Metadata = {
   title: "Donate",
@@ -13,7 +15,8 @@ export const metadata: Metadata = {
 
 export default async function DonatePage() {
   const total = await getDonationTotal().catch(() => null);
-  const pct = total && total.target > 0 ? Math.min(100, Math.round((total.raised / total.target) * 100)) : null;
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
   return (
     <>
       <BreadcrumbJsonLd items={[{ name: "Home", path: "/" }, { name: "Donate" }]} />
@@ -30,32 +33,16 @@ export default async function DonatePage() {
           <div className="row"><div className="col-lg-7 mx-auto">
             <div className="sec-title text-center mb-60">
               <span className="sub-title section-eyebrow">Assalamu Alaikum</span>
-              <h2 className="h2 title">Support Your Masjid</h2>
+              <h2 className="h2 title">Support Your Islamic Center</h2>
               <p className="text mt-20">
                 Your generous contributions help us continue our community programs and work toward building a
                 permanent masjid and Islamic Learning Centre for the Cariboo region. Every donation, big or small,
                 makes a difference.
               </p>
             </div>
-            {pct !== null && total && (
+            {total && total.target > 0 && (
               <div className="donation-bar mb-40">
-                <div className="donation-progress">
-                  <div className="progress-track">
-                    <div className="progress-fill" style={{ width: `${pct}%` }}>
-                      <span className="progress-thumb"></span>
-                    </div>
-                  </div>
-                </div>
-                <div className="donation-info">
-                  <div className="fund-raise">
-                    <div className="icon"><i className="fa-solid fa-hand-holding-dollar"></i></div>
-                    <div className="text">Raised: <span className="value">${total.raised.toLocaleString()}</span></div>
-                  </div>
-                  <div className="fund-goal">
-                    <div className="icon"><i className="fa-solid fa-bullseye"></i></div>
-                    <div className="text">Goal: <span className="value">${total.target.toLocaleString()}</span></div>
-                  </div>
-                </div>
+                <DonationGoalBar raised={total.raised} target={total.target} lastUpdated={total.lastUpdated} />
               </div>
             )}
           </div></div>
@@ -65,7 +52,7 @@ export default async function DonatePage() {
                 <div className="image-box logo-frame"><div className="image logo-badge"><Image src="/assets/images/paypal-logo.svg" alt="PayPal" width={124} height={33} /></div></div>
                 <div className="content-box">
                   <div className="tag"><i className="fa-solid fa-credit-card"></i> PayPal</div>
-                  <h3 className="h4 title">Give securely online through our BCMA PayPal account</h3>
+                  <h3 className="h4 title">Donate securely online through our BCMA PayPal account</h3>
                   <p className="text">One-time or recurring, any amount — processed directly by the BC Muslim Association.</p>
                   <a href="https://www.paypal.com/donate/?hosted_button_id=VD5SQYWVZGLWU" target="_blank" rel="noopener noreferrer" className="btn-style-six">Donate via PayPal</a>
                 </div>
@@ -87,11 +74,19 @@ export default async function DonatePage() {
                 <div className="image-box logo-frame"><div className="image"><Image src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque" fill sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw" style={{ objectFit: "cover" }} /></div></div>
                 <div className="content-box">
                   <div className="tag"><i className="fa-solid fa-hand-holding-dollar"></i> Cash / Cheque / Bank Transfer</div>
-                  <h3 className="h4 title">Prefer to give in person?</h3>
+                  <h3 className="h4 title">Prefer to donate in person?</h3>
                   <p className="text">Contact us for banking details or cheque mailing instructions.</p>
-                  <a href="mailto:cariboo.secretary@thebcma.com?subject=Donation%20by%20cheque%20%2F%20bank%20transfer" className="btn-style-six">Email Us</a>
+                  <a href={`mailto:${contactEmail}?subject=Donation%20by%20cheque%20%2F%20bank%20transfer`} className="btn-style-six">Email Us</a>
                 </div>
               </div></div>
+            </div>
+          </div>
+          <div className="row mt-40">
+            <div className="col-lg-8 mx-auto text-center">
+              <p className="text">
+                Already donated and need an official receipt for tax purposes?{" "}
+                <Link href="/tax-receipt/" className="fw-bold">Claim Your Tax Receipt →</Link>
+              </p>
             </div>
           </div>
         </div>

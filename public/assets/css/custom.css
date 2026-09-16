@@ -306,70 +306,11 @@
 }
 .lightbox-close:hover { background: var(--theme-color1); color: #14213A; }
 
-/* ---- Donate page fundraiser progress bar: theme.css only styles
-   .donation-progress/.progress-track/.fund-raise/.fund-goal when nested
-   under .causes-block .inner-block .content-box (a card widget), but this
-   page places the same classes directly in the section — so none of it
-   matched and the raised/goal figures rendered as bare unstyled text. Also
-   dropping the theme's own hardcoded loadProgress animation (which snaps
-   the bar to a fixed 70%) since the width here is a real percentage set
-   inline per member. ---- */
+/* ---- Donate page fundraiser progress bar wrapper. The bar/figures
+   themselves are the shared DonationGoalBar component (.goal-progress*
+   rules, further down this file) so the donate page, homepage and header
+   all animate and format the goal identically. ---- */
 .donation-bar { margin: 30px 0 40px; }
-.donation-progress { width: 100%; }
-.donation-progress .progress-track {
-  background: rgba(20, 78, 151, 0.12);
-  border-radius: 50px;
-  height: 7px;
-  position: relative;
-  width: 100%;
-}
-.donation-progress .progress-fill {
-  background: var(--theme-color3);
-  border-radius: 50px;
-  height: 100%;
-  position: relative;
-  transition: width 0.6s ease;
-}
-.donation-progress .progress-thumb {
-  background: var(--theme-color-white);
-  border: 2px solid var(--theme-color1);
-  border-radius: 50%;
-  box-sizing: border-box;
-  height: 11px;
-  position: absolute;
-  right: -6px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 11px;
-}
-.donation-info {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 20px;
-}
-.donation-info .fund-raise,
-.donation-info .fund-goal {
-  align-items: center;
-  display: flex;
-  gap: 11.5px;
-}
-.donation-info .fund-raise .icon,
-.donation-info .fund-goal .icon {
-  color: var(--theme-color1);
-  font-size: 20px;
-}
-.donation-info .fund-raise .text,
-.donation-info .fund-goal .text {
-  color: var(--text-color);
-}
-.donation-info .fund-raise .text .value,
-.donation-info .fund-goal .text .value {
-  font-weight: 700;
-  color: var(--theme-color3);
-}
 
 /* ---- Ways to give cards (replaces fake fundraiser progress bars) ---- */
 .give-block .content-box .tag { display: inline-flex; align-items: center; gap: 8px; }
@@ -1017,3 +958,228 @@
   padding: 12px;
   width: 44px;
 }
+
+/* ---- Shared fundraising-goal bar (DonationGoalBar.tsx): the animated
+   track/fill/thumb + raised/goal figures + "last updated" caption used by
+   the donate page, the homepage hero card and bottom CTA, the header's
+   sitewide strip, and the donation popup modal — one visual so the goal
+   reads the same wherever the board wants it highlighted. The component
+   counts the fill/figures up from 0 on every mount (see the .tsx), so no
+   width/opacity transition is set here — animating both the inline width
+   every frame *and* via a CSS transition at once would fight each other. */
+.goal-progress { width: 100%; }
+.goal-progress-track {
+  background: rgba(20, 78, 151, 0.12);
+  border-radius: 50px;
+  height: 10px;
+  position: relative;
+  width: 100%;
+}
+.goal-progress-sm .goal-progress-track { height: 6px; }
+.goal-progress-fill {
+  background: var(--theme-color1);
+  border-radius: 50px;
+  height: 100%;
+  position: relative;
+}
+.goal-progress-thumb {
+  background: var(--theme-color-white);
+  border: 2px solid var(--theme-color1);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 14px;
+  position: absolute;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+}
+.goal-progress-sm .goal-progress-thumb { height: 10px; right: -5px; width: 10px; }
+.goal-progress-tip {
+  background: var(--theme-color1);
+  border-radius: 20px;
+  bottom: 100%;
+  color: var(--theme-color2);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  margin-bottom: 8px;
+  padding: 4px 9px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  transform: translateX(50%);
+  white-space: nowrap;
+}
+.goal-progress-sm .goal-progress-tip { font-size: 10px; margin-bottom: 6px; padding: 2px 7px; }
+.goal-progress-stats {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  justify-content: space-between;
+  margin-top: 14px;
+}
+.goal-progress-raised { color: var(--text-color); }
+.goal-progress-raised strong { color: var(--theme-color3); font-weight: 700; }
+.goal-progress-pct { color: var(--text-color); font-weight: 600; }
+.goal-progress-updated {
+  color: var(--text-color);
+  font-size: 13px;
+  margin-top: 8px;
+  opacity: .8;
+}
+.goal-progress-updated i { margin-right: 6px; }
+
+/* ---- Sitewide goal strip (Header.tsx): board members wanted the fund goal
+   to be a persistent, highly visible presence across the whole site rather
+   than something visitors only see if they land on the Donate page — this
+   sits above .header-lower on every page. It scrolls away once .sticky-header
+   takes over (kept deliberately compact — logo/nav only) so it doesn't eat
+   into reading space while scrolling. ---- */
+.goal-highlight-bar { background: var(--theme-color2); }
+.goal-highlight-inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 10px 0;
+}
+.goal-highlight-label {
+  align-items: center;
+  color: var(--theme-color-white);
+  display: flex;
+  flex-shrink: 0;
+  font-weight: 700;
+  gap: 8px;
+  letter-spacing: -0.01em;
+}
+.goal-highlight-label i { color: var(--theme-color1); }
+.goal-highlight-inner .goal-progress { flex: 1 1 200px; min-width: 140px; }
+.goal-highlight-inner .goal-progress-track { background: rgba(255, 255, 255, 0.25); }
+.goal-highlight-cta {
+  background-color: var(--theme-color1);
+  border-radius: 40px;
+  color: var(--theme-color2);
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 20px;
+  transition: opacity 300ms ease;
+  white-space: nowrap;
+}
+.goal-highlight-cta:hover { color: var(--theme-color2); opacity: 0.85; }
+/* Cramped rather than useful at phone widths (icon, label, bar and button
+   all fighting for the same row) — hidden below the tablet breakpoint the
+   rest of the header's mobile treatment already uses; the goal is still
+   visible via the hero section, the donate page and the popup modal. */
+@media (max-width: 767.98px) {
+  .goal-highlight-bar { display: none; }
+}
+
+/* ---- Hero Building Fund line (homepage banner): plain text + the shared
+   bar, styled like the rest of .banner-content (reuses its existing .text
+   color rule) rather than a boxed-on widget, so it reads as part of the hero
+   copy instead of a separate card. ---- */
+.banner-goal-bar { max-width: 420px; }
+/* theme.css hardcodes `b, strong { color: #333 }` globally — a direct match
+   on the element itself, so it wins over the inherited white .text color
+   from the hero paragraph instead of the other way around. Without this,
+   "Sadaqah Jariyah" renders dark-on-dark against the hero photo. */
+.banner-goal-bar strong { color: inherit; }
+.banner-goal-bar .goal-progress-track { background: rgba(255, 255, 255, 0.25); }
+.banner-goal-bar .goal-progress-raised,
+.banner-goal-bar .goal-progress-pct,
+.banner-goal-bar .goal-progress-updated {
+  color: var(--theme-color-white);
+}
+.banner-goal-bar .goal-progress-raised strong { color: var(--theme-color1); }
+.banner-goal-bar .goal-progress-updated { opacity: .85; }
+
+/* ---- Delayed donation ask (DonationModal.tsx): opens once per browser tab
+   session a couple of seconds after landing on any page except /donate/
+   itself. Mirrors .lightbox-overlay's fixed + opacity/visibility toggle (kept
+   permanently mounted so the transition has something to animate) for the
+   same reason documented there — position: fixed only pins to the true
+   viewport when nothing between it and <body> carries a transform, and GSAP
+   ScrollSmoother puts one on #smooth-content. ---- */
+.donation-modal-overlay {
+  align-items: center;
+  background: rgba(6, 20, 38, 0.75);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  opacity: 0;
+  padding: 20px;
+  position: fixed;
+  transition: opacity .3s ease;
+  visibility: hidden;
+  z-index: 999999;
+}
+.donation-modal-overlay.open { opacity: 1; visibility: visible; }
+.donation-modal {
+  background: var(--theme-color-white);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+  max-width: 460px;
+  padding: 40px 34px 34px;
+  position: relative;
+  text-align: center;
+  transform: translateY(16px) scale(.97);
+  transition: transform .3s ease;
+  width: 100%;
+}
+.donation-modal-overlay.open .donation-modal { transform: translateY(0) scale(1); }
+@media (prefers-reduced-motion: reduce) {
+  .donation-modal-overlay,
+  .donation-modal { transition: none; }
+}
+.donation-modal-close {
+  align-items: center;
+  background: rgba(20, 78, 151, 0.08);
+  border: 0;
+  border-radius: 50%;
+  color: var(--theme-color2);
+  cursor: pointer;
+  display: flex;
+  height: 34px;
+  justify-content: center;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  transition: background 300ms ease;
+  width: 34px;
+}
+.donation-modal-close:hover { background: rgba(20, 78, 151, 0.16); }
+/* Reuses the site's own .sec-title/.sub-title.section-eyebrow pattern (see
+   the Donate page's "Assalamu Alaikum" / "Building Fund" eyebrows) instead of
+   a one-off icon badge, just tightened up for the modal's small footprint. */
+.donation-modal .sec-title { margin-bottom: 16px; }
+.donation-modal-title {
+  color: var(--theme-color2);
+  font-size: 22px;
+  margin: 0;
+}
+.donation-modal-text {
+  color: var(--text-color);
+  margin-bottom: 22px;
+}
+.donation-modal .goal-progress { margin-bottom: 24px; text-align: left; }
+.donation-modal-actions {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.donation-modal-actions .theme-btn { justify-content: center; width: 100%; }
+.donation-modal-dismiss {
+  background: none;
+  border: 0;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.donation-modal-dismiss:hover { color: var(--theme-color2); }

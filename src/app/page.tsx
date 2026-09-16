@@ -2,13 +2,15 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CopyChip from "@/components/CopyChip";
+import DonationGoalBar from "@/components/DonationGoalBar";
 import FaqAccordion from "@/components/FaqAccordion";
 import InspirationSlider from "@/components/InspirationSlider";
 import BannerRipple from "@/components/BannerRipple";
 import HomeContactForm from "@/components/HomeContactForm";
 import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
-import { getBoardMembers, getContactFormFields, getDonationTotal } from "@/lib/wix";
-import { getTodayHijriDate, getTodayPrayerTimes } from "@/lib/prayerTimes";
+import { addressLines, ADDRESS_LINE, CONTACT_EMAIL } from "@/lib/site";
+import { getBoardMembers, getContactFormFields, getDonationTotal, getSiteSettings } from "@/lib/wix";
+import { getTodayHijriDate, getTodayIqamaTimes, getTodayPrayerTimes } from "@/lib/prayerTimes";
 import BoardGrid from "@/components/BoardGrid";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -50,28 +52,30 @@ const PRAYER_ICONS: Record<string, ReactNode> = {
   ),
 };
 
-const FAQ_ITEMS = [
-  {
-    q: "What services does the Islamic Center provide?",
-    a: "We offer daily prayers and Friday Jummah, Qur'anic studies and Arabic language classes, Islamic history education, youth programs, and community and charity events throughout the year.",
-  },
-  {
-    q: "Can non-Muslims visit or ask questions about Islam?",
-    a: "Yes, absolutely. Visitors are always welcome. Please dress modestly, and feel free to reach out to us beforehand so we can help make your visit comfortable and answer any questions.",
-  },
-  {
-    q: "Do you offer Islamic classes or Qur'an education?",
-    a: "Yes. We offer Arabic classes delivered online (Zoom, Teams or WhatsApp) or in person, plus a Qur'an recitation resource. Contact us or visit our Arabic Classes page to register.",
-  },
-  {
-    q: "How can I give Zakat or Sadaqah?",
-    a: "You can give through PayPal, Interac e-Transfer, or by cash/cheque/bank transfer — see our Donate page for details. Your Zakat and Sadaqah support our building fund, programs and community services.",
-  },
-  {
-    q: "How can I contact the Islamic Center?",
-    a: "Email us at cariboo.secretary@thebcma.com, message us on Instagram (@ccic_bcma) or Facebook (Williams Lake Muslims), or use the contact form on our Contact page.",
-  },
-];
+function getFaqItems(contactEmail: string) {
+  return [
+    {
+      q: "What services does the Islamic Center provide?",
+      a: "We offer daily prayers and Friday Jummah, Qur'anic studies and Arabic language classes, Islamic history education, youth programs, and community and charity events throughout the year.",
+    },
+    {
+      q: "Can non-Muslims visit or ask questions about Islam?",
+      a: "Yes, absolutely. Visitors are always welcome. Please dress modestly, and feel free to reach out to us beforehand so we can help make your visit comfortable and answer any questions.",
+    },
+    {
+      q: "Do you offer Islamic classes or Qur'an education?",
+      a: "Yes. We offer Arabic classes delivered online (Zoom, Teams or WhatsApp) or in person, plus a Qur'an recitation resource. Contact us or visit our Arabic Classes page to register.",
+    },
+    {
+      q: "How can I donate Zakat or Sadaqah?",
+      a: "You can donate through PayPal, Interac e-Transfer, or by cash/cheque/bank transfer — see our Donate page for details. Your Zakat and Sadaqah support our building fund, programs and community services.",
+    },
+    {
+      q: "How can I contact the Islamic Center?",
+      a: `Email us at ${contactEmail}, message us on Instagram (@ccic_bcma) or Facebook (Williams Lake Muslims), or use the contact form on our Contact page.`,
+    },
+  ];
+}
 
 // Real pixel dimensions of each service icon photo — lets next/image reserve
 // the correct aspect ratio up front (no layout shift) instead of guessing.
@@ -89,21 +93,30 @@ const QUOTES = [
   { text: "“The believers, in their mutual kindness, compassion and sympathy, are just like one body.”", source: "Hadith, Sahih al-Bukhari & Muslim" },
 ];
 
-const faqJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ_ITEMS.map((item) => ({
-    "@type": "Question",
-    name: item.q,
-    acceptedAnswer: { "@type": "Answer", text: item.a },
-  })),
-};
+function buildFaqJsonLd(faqItems: ReturnType<typeof getFaqItems>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+}
 
 export default async function HomePage() {
   const board = await getBoardMembers().catch(() => []);
   const donation = await getDonationTotal().catch(() => null);
   const contactFields = await getContactFormFields().catch(() => undefined);
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
+  const address = settings.address ?? ADDRESS_LINE;
+  const [addressLine1, addressLine2] = addressLines(address);
+  const faqItems = getFaqItems(contactEmail);
+  const faqJsonLd = buildFaqJsonLd(faqItems);
   const prayerTimes = getTodayPrayerTimes();
+  const iqamaTimes = getTodayIqamaTimes();
   const hijriDate = getTodayHijriDate();
   return (
     <>
@@ -134,12 +147,18 @@ export default async function HomePage() {
                       <span className="btn-arrow-right"><i className="fa-solid fa-play"></i></span>
                     </a>
                   </div>
+                  {donation && donation.target > 0 && (
+                    <div className="banner-goal-bar mt-30">
+                      <p className="text mb-10"><strong>Sadaqah Jariyah</strong> — our Building Fund</p>
+                      <DonationGoalBar raised={donation.raised} target={donation.target} lastUpdated={donation.lastUpdated} />
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="col-xl-4">
                 <div className="banner-image bounce-y">
                   <figure className="image overlay-anim">
-                    <Image src="/assets/images/banner-image.jpg" alt="Masjid interior" width={328} height={527} priority />
+                    <Image src="/assets/images/banner-image.jpg" alt="Islamic center interior" width={328} height={527} priority />
                   </figure>
                   <div className="image-bg"><img src="/assets/images/banner-image-bg.png" alt="" /></div>
                 </div>
@@ -210,7 +229,7 @@ export default async function HomePage() {
                     <div className="tab-pane fade" id="vision" role="tabpanel" aria-labelledby="vision-tab">
                       <div className="about-block">
                         <div className="inner-box">
-                          A masjid that welcomes every worshipper with peace, compassion and respect for all
+                          An Islamic center that welcomes every worshipper with peace, compassion and respect for all
                           individuals — a lasting home for prayer, learning and service for the Muslim community of
                           Williams Lake and the wider Cariboo region.
                         </div>
@@ -232,7 +251,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ===== Ways to Give ===== */}
+      {/* ===== Ways to Donate ===== */}
       <section className="our-causes pt-120" id="give">
         <div className="floating-img-1 bounce-y"><img src="/assets/images/obj-img-1.png" alt="" /></div>
         <div className="container">
@@ -240,7 +259,7 @@ export default async function HomePage() {
             <div className="col-lg-6 mx-auto">
               <div className="sec-title text-center mb-60">
                 <span className="sub-title section-eyebrow">Sadaqah &amp; Zakat</span>
-                <h2 className="h2 title">Ways You Can Give</h2>
+                <h2 className="h2 title">Ways You Can Donate</h2>
               </div>
             </div>
           </div>
@@ -251,8 +270,8 @@ export default async function HomePage() {
                   <div className="image-box logo-frame"><div className="image logo-badge"><Image src="/assets/images/paypal-logo.svg" alt="PayPal" width={124} height={33} /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-credit-card"></i> PayPal</div>
-                    <h3 className="h4 title">Give securely online through our BCMA PayPal account</h3>
-                    <p className="text">The fastest way to give — one-time or recurring, any amount, processed directly by the BC Muslim Association.</p>
+                    <h3 className="h4 title">Donate securely online through our BCMA PayPal account</h3>
+                    <p className="text">The fastest way to donate — one-time or recurring, any amount, processed directly by the BC Muslim Association.</p>
                     <a href="https://www.paypal.com/donate/?hosted_button_id=VD5SQYWVZGLWU" target="_blank" rel="noopener noreferrer" className="btn-style-six">Donate via PayPal</a>
                   </div>
                 </div>
@@ -277,12 +296,20 @@ export default async function HomePage() {
                   <div className="image-box logo-frame"><div className="image"><Image src="/assets/images/donation-money-vector-flat-illustration.jpg" alt="Cheque or bank transfer" fill sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw" style={{ objectFit: "cover" }} /></div></div>
                   <div className="content-box">
                     <div className="tag"><i className="fa-solid fa-hand-holding-dollar"></i> Cash / Cheque / Bank Transfer</div>
-                    <h3 className="h4 title">Prefer to give in person or by cheque?</h3>
+                    <h3 className="h4 title">Prefer to donate in person or by cheque?</h3>
                     <p className="text">Contact our secretary for cheque mailing instructions or direct bank transfer details.</p>
-                    <a href="mailto:cariboo.secretary@thebcma.com?subject=Donation%20by%20cheque%20%2F%20bank%20transfer" className="btn-style-six">Email Us</a>
+                    <a href={`mailto:${contactEmail}?subject=Donation%20by%20cheque%20%2F%20bank%20transfer`} className="btn-style-six">Email Us</a>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="row mt-40">
+            <div className="col-lg-8 mx-auto text-center">
+              <p className="text">
+                Already donated and need an official receipt for tax purposes?{" "}
+                <Link href="/tax-receipt/" className="fw-bold">Claim Your Tax Receipt →</Link>
+              </p>
             </div>
           </div>
         </div>
@@ -295,26 +322,29 @@ export default async function HomePage() {
           <div className="sec-title text-center mb-60">
             <span className="sub-title section-eyebrow">Salah</span>
             <h2 className="h2 title">Daily Prayers &amp; Jummah</h2>
-            <p className="text">Stay connected with your daily prayers. Our masjid doors are <br /> always open to worshippers.</p>
+            <p className="text">Stay connected with your daily prayers. Our Islamic center&apos;s doors are <br /> always open to worshippers.</p>
             <p className="text mb-0"><strong>{hijriDate.formatted}</strong> — Williams Lake, BC</p>
           </div>
         </div>
         <div className="outer-box">
           <div className="row justify-content-center">
             {[
-              { name: "Fajr", time: prayerTimes.fajr },
-              { name: "Zuhr", time: prayerTimes.dhuhr },
-              { name: "Asr", time: prayerTimes.asr },
-              { name: "Maghrib", time: prayerTimes.maghrib },
-              { name: "Isha", time: prayerTimes.isha },
-            ].map(({ name, time }) => (
+              { name: "Fajr", time: prayerTimes.fajr, iqama: iqamaTimes.fajr },
+              { name: "Zuhr", time: prayerTimes.dhuhr, iqama: iqamaTimes.dhuhr },
+              { name: "Asr", time: prayerTimes.asr, iqama: iqamaTimes.asr },
+              { name: "Maghrib", time: prayerTimes.maghrib, iqama: iqamaTimes.maghrib },
+              { name: "Isha", time: prayerTimes.isha, iqama: iqamaTimes.isha },
+            ].map(({ name, time, iqama }) => (
               <div className="col-lg-4 col-md-6" key={name}>
                 <div className="time-block">
                   <div className="icon">
                     {PRAYER_ICONS[name]}
                     <h3 className="h5 title">{name}</h3>
                   </div>
-                  <div className="content"><div className="h6 title">{time}</div></div>
+                  <div className="content">
+                    <div className="h6 title"><span>Adhan</span> Iqamah*</div>
+                    <div className="h6 title"><span>{time}</span> {iqama}</div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -338,11 +368,11 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="prayer-note">
-            <div className="h6 title">Adhan times above are calculated daily for Williams Lake — iqamah (congregation start) is a few minutes after and is posted at the masjid and on our social pages</div>
+            <div className="h6 title">Adhan times above are calculated daily for Williams Lake. *Iqamah (congregation start) is approximate — Adhan plus 15 minutes — and may shift slightly day to day.</div>
             <p className="text mb-0">
               Follow <a href="https://www.instagram.com/ccic_bcma/" target="_blank" rel="noopener noreferrer">@ccic_bcma on Instagram</a> or{" "}
               <a href="https://www.facebook.com/williamslakemuslims/" target="_blank" rel="noopener noreferrer">Williams Lake Muslims on Facebook</a>, or{" "}
-              <a href="mailto:cariboo.secretary@thebcma.com">email us</a> for the exact iqamah schedule.
+              <a href={`mailto:${contactEmail}`}>email us</a> to confirm the exact iqamah time.
             </p>
             <p className="text mb-0">
               Source:{" "}
@@ -471,23 +501,12 @@ export default async function HomePage() {
                   </p>
                   {donation && donation.target > 0 && (
                     <div className="mt-20">
-                      <div className="progress" style={{ height: 10, borderRadius: 999, background: "#e6e6e6", overflow: "hidden" }}>
-                        <div
-                          style={{
-                            width: `${Math.min(100, (donation.raised / donation.target) * 100)}%`,
-                            height: "100%",
-                            background: "#F9B024",
-                          }}
-                        />
-                      </div>
-                      <p className="text mt-10 mb-0">
-                        <strong>${donation.raised.toLocaleString()}</strong> raised of a ${donation.target.toLocaleString()} goal
-                      </p>
+                      <DonationGoalBar raised={donation.raised} target={donation.target} lastUpdated={donation.lastUpdated} />
                     </div>
                   )}
                   <Link href="/donate/" className="theme-btn btn-style-one mt-20">
                     <span className="btn-arrow-left"><i className="fa-solid fa-arrow-right"></i></span>
-                    <span className="btn-title">Give Now </span>
+                    <span className="btn-title">Donate Now </span>
                     <span className="btn-arrow-right"><i className="fa-solid fa-arrow-right"></i></span>
                   </Link>
                 </div>
@@ -510,7 +529,7 @@ export default async function HomePage() {
           <div className="row">
             <div className="col-lg-10 mx-lg-auto">
               <div className="faq-content-1">
-                <FaqAccordion items={FAQ_ITEMS} />
+                <FaqAccordion items={faqItems} />
               </div>
             </div>
           </div>
@@ -543,7 +562,7 @@ export default async function HomePage() {
                   </div>
                   <div className="map-image">
                     <iframe
-                      src="https://www.google.com/maps?q=1000+Huckvale+Pl,+Williams+Lake,+BC+V2G+4L2&output=embed"
+                      src={`https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`}
                       width="100%"
                       height={360}
                       style={{ border: 0, display: "block" }}
@@ -555,7 +574,7 @@ export default async function HomePage() {
                 </div>
               </div>
               <div className="col-lg-7">
-                <HomeContactForm fields={contactFields} />
+                <HomeContactForm fields={contactFields} contactEmail={contactEmail} />
               </div>
             </div>
           </div>
@@ -568,7 +587,7 @@ export default async function HomePage() {
                 <div className="col-lg-4 col-sm-6">
                   <div className="contact-block"><div className="inner-box">
                     <i className="fa-solid fa-envelope"></i>
-                    <div><p className="text text-nowrap"><a href="mailto:cariboo.secretary@thebcma.com">cariboo.secretary@thebcma.com</a></p></div>
+                    <div><p className="text text-nowrap"><a href={`mailto:${contactEmail}`}>{contactEmail}</a></p></div>
                   </div></div>
                 </div>
                 <div className="col-lg-4 col-sm-6">
@@ -588,12 +607,12 @@ export default async function HomePage() {
                     <i className="fa-solid fa-location-dot"></i>
                     <div>
                       <a
-                        href="https://www.google.com/maps/search/?api=1&query=1000+Huckvale+Pl%2C+Williams+Lake%2C+BC+V2G+4L2"
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <p className="text">1000 Huckvale Pl,</p>
-                        <p className="text">Williams Lake, BC V2G 4L2</p>
+                        <p className="text">{addressLine1},</p>
+                        <p className="text">{addressLine2}</p>
                       </a>
                     </div>
                   </div></div>

@@ -3,8 +3,10 @@ import Script from "next/script";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import BackToTop from "@/components/BackToTop";
+import DonationModal from "@/components/DonationModal";
 import SmoothScroll from "@/components/SmoothScroll";
-import { ADDRESS, CONTACT_EMAIL, GEO, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from "@/lib/site";
+import { ADDRESS_LINE, CONTACT_EMAIL, GEO, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from "@/lib/site";
+import { getDonationTotal, getSiteSettings } from "@/lib/wix";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -30,24 +32,31 @@ export const metadata: Metadata = {
   },
 };
 
-const mosqueJsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Mosque",
-  name: SITE_NAME,
-  alternateName: "CCIC",
-  description: SITE_DESCRIPTION,
-  url: SITE_URL,
-  email: CONTACT_EMAIL,
-  image: `${SITE_URL}/assets/images/banner-image.jpg`,
-  logo: `${SITE_URL}/assets/images/BCMA_Logo.jpg`,
-  address: { "@type": "PostalAddress", ...ADDRESS },
-  geo: { "@type": "GeoCoordinates", ...GEO },
-  areaServed: "Williams Lake, BC",
-  memberOf: { "@type": "Organization", name: "BC Muslim Association", url: "https://thebcma.com" },
-  sameAs: SOCIAL_LINKS,
-};
+function buildMosqueJsonLd(contactEmail: string, address: string) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Mosque",
+    name: SITE_NAME,
+    alternateName: "CCIC",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    email: contactEmail,
+    image: `${SITE_URL}/assets/images/banner-image.jpg`,
+    logo: `${SITE_URL}/assets/images/BCMA_Logo.jpg`,
+    address,
+    geo: { "@type": "GeoCoordinates", ...GEO },
+    areaServed: "Williams Lake, BC",
+    memberOf: { "@type": "Organization", name: "BC Muslim Association", url: "https://thebcma.com" },
+    sameAs: SOCIAL_LINKS,
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings().catch(() => ({ email: null, address: null }));
+  const contactEmail = settings.email ?? CONTACT_EMAIL;
+  const address = settings.address ?? ADDRESS_LINE;
+  const mosqueJsonLd = buildMosqueJsonLd(contactEmail, address);
+  const donation = await getDonationTotal().catch(() => null);
   return (
     <html lang="en">
       <head>
@@ -83,11 +92,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               same reason; its plain .header-lower bar stays inside so it
               still occupies normal flow and pushes page content down. */}
           <SmoothScroll>
-            <Header />
+            <Header contactEmail={contactEmail} address={address} donation={donation} />
             {children}
             <Footer />
           </SmoothScroll>
           <BackToTop />
+          <DonationModal donation={donation} />
         </div>
 
         <Script src="/assets/js/jquery.min.js" strategy="beforeInteractive" />
