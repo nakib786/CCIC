@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { submitTaxReceiptRequest, type TaxReceiptRequestInput } from "@/lib/wix";
+import { isValidPostalCode } from "@/lib/address";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -26,6 +27,13 @@ export async function POST(request: Request) {
     !input.donationMethod?.trim()
   ) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  if (!isValidPostalCode(address.postalCode, address.country)) {
+    return NextResponse.json(
+      { error: "That postal/zip code doesn't look right for the selected country." },
+      { status: 400 }
+    );
   }
 
   try {

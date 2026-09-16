@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { CONTACT_EMAIL } from "@/lib/site";
+import { POSTAL_CODE_PATTERNS, POSTAL_CODE_PLACEHOLDERS } from "@/lib/address";
 
 const CA_PROVINCES = [
   { code: "AB", name: "Alberta" },
@@ -44,13 +45,20 @@ const DONATION_METHODS = ["PayPal", "Interac e-Transfer", "Cash", "Cheque", "Ban
 export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { contactEmail?: string }) {
   const [country, setCountry] = useState<"CA" | "US">("CA");
   const [subdivision, setSubdivision] = useState("BC");
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "verifying" | "sending" | "sent" | "error">("idle");
+  // Set after a submit attempt whose address didn't verify (see onSubmit) —
+  // lets the donor either fix the address or press submit again to send it
+  // as entered. Cleared whenever an address field changes.
+  const [addressWarning, setAddressWarning] = useState<string | null>(null);
 
   const provinceOptions = country === "CA" ? CA_PROVINCES : US_STATES;
+
+  const clearAddressWarning = () => setAddressWarning(null);
 
   const onCountryChange = (next: "CA" | "US") => {
     setCountry(next);
     setSubdivision(next === "CA" ? "BC" : "");
+    clearAddressWarning();
   };
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -72,6 +80,39 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
       referenceNumber: String(data.get("referenceNumber") || ""),
       notes: String(data.get("notes") || ""),
     };
+
+    // Skip the check if we already warned once this attempt — the button
+    // becomes "Submit Anyway" and just sends it as entered.
+    if (!addressWarning) {
+      setStatus("verifying");
+      const provinceName = provinceOptions.find((p) => p.code === subdivision)?.name ?? subdivision;
+      const addressText = [
+        values.addressLine,
+        values.addressLine2,
+        values.city,
+        `${provinceName} ${values.postalCode}`.trim(),
+        country === "CA" ? "Canada" : "United States",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      try {
+        const verifyRes = await fetch("/api/address-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: addressText, country }),
+        });
+        const verifyData = verifyRes.ok ? await verifyRes.json() : { verified: true };
+        if (!verifyData.verified) {
+          setAddressWarning(
+            'We couldn’t confirm that address is deliverable. Please double-check it, then press "Submit Anyway" if it’s correct.'
+          );
+          setStatus("idle");
+          return;
+        }
+      } catch {
+        // Our own verify call failed (offline, etc.) — don't block a real donor over it.
+      }
+    }
 
     setStatus("sending");
     try {
@@ -103,6 +144,7 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
       form.reset();
       setCountry("CA");
       setSubdivision("BC");
+      setAddressWarning(null);
     } catch {
       const provinceName = provinceOptions.find((p) => p.code === subdivision)?.name ?? subdivision;
       const body = encodeURIComponent(
@@ -134,10 +176,21 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
           <div className="col-md-6"><input type="email" className="form-control" placeholder="Email *" name="email" required /></div>
           <div className="col-md-6"><input type="tel" className="form-control" placeholder="Phone (optional)" name="phone" /></div>
 
-          <div className="col-12"><input type="text" className="form-control" placeholder="Mailing Address — Street Address *" name="addressLine" required /></div>
-          <div className="col-12"><input type="text" className="form-control" placeholder="Apartment / Suite / Unit (optional)" name="addressLine2" /></div>
-          <div className="col-md-6"><input type="text" className="form-control" placeholder="City *" name="city" required /></div>
-          <div className="col-md-6"><input type="text" className="form-control" placeholder="Postal / Zip Code *" name="postalCode" required /></div>
+          <div className="col-12"><input type="text" className="form-control" placeholder="Mailing Address — Street Address *" name="addressLine" required onChange={clearAddressWarning} /></div>
+          <div className="col-12"><input type="text" className="form-control" placeholder="Apartment / Suite / Unit (optional)" name="addressLine2" onChange={clearAddressWarning} /></div>
+          <div className="col-md-6"><input type="text" className="form-control" placeholder="City *" name="city" required onChange={clearAddressWarning} /></div>
+          <div className="col-md-6">
+            <input
+              type="text"
+              className="form-control"
+              placeholder={`Postal / Zip Code * (${POSTAL_CODE_PLACEHOLDERS[country]})`}
+              name="postalCode"
+              pattern={POSTAL_CODE_PATTERNS[country]}
+              title={`Enter a valid ${country === "CA" ? "Canadian postal code" : "US zip code"}, ${POSTAL_CODE_PLACEHOLDERS[country]}`}
+              required
+              onChange={clearAddressWarning}
+            />
+          </div>
           <div className="col-md-6">
             <select
               className="form-control form-select"
@@ -153,7 +206,10 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
             <select
               className="form-control form-select"
               value={subdivision}
-              onChange={(e) => setSubdivision(e.target.value)}
+              onChange={(e) => {
+                setSubdivision(e.target.value);
+                clearAddressWarning();
+              }}
               required
               aria-label={country === "CA" ? "Province" : "State"}
             >
@@ -163,6 +219,11 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
               ))}
             </select>
           </div>
+          {addressWarning && (
+            <div className="col-12">
+              <p className="text text-danger mt-0 mb-0" role="alert">{addressWarning}</p>
+            </div>
+          )}
 
           <div className="col-md-6">
             <label className="form-label small mb-1 d-block">Date of Donation *</label>
@@ -185,8 +246,20 @@ export default function TaxReceiptForm({ contactEmail = CONTACT_EMAIL }: { conta
           <div className="col-12"><textarea className="form-control" placeholder="Additional Notes (optional)" name="notes" rows={3}></textarea></div>
 
           <div className="col-12">
-            <button type="submit" className="btn mt-10 btn-donate w-100" disabled={status === "sending"}>
-              {status === "sending" ? "Sending…" : status === "sent" ? "Request Sent — Jazakum Allahu Khairan!" : "Submit Request"}
+            <button
+              type="submit"
+              className={`btn mt-10 w-100 ${addressWarning ? "btn-danger" : "btn-donate"}`}
+              disabled={status === "sending" || status === "verifying"}
+            >
+              {status === "sending"
+                ? "Sending…"
+                : status === "verifying"
+                ? "Checking address…"
+                : status === "sent"
+                ? "Request Sent — Jazakum Allahu Khairan!"
+                : addressWarning
+                ? "Submit Anyway"
+                : "Submit Request"}
             </button>
             {status === "error" && (
               <p className="text mt-10 mb-0">
