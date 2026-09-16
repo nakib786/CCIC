@@ -10,6 +10,13 @@
   "workers_dev": true,
   "routes": [
     {
+      "pattern": "theccic.ca",
+      "custom_domain": true
+    },
+    {
+      // Kept live so the Worker can still answer here and 301 every
+      // request to theccic.ca (see src/middleware.ts) — carries over
+      // indexed pages, backlinks and AI citations of the old subdomain.
       "pattern": "new.theccic.ca",
       "custom_domain": true
     }

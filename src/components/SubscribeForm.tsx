@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 export default function SubscribeForm() {
@@ -42,8 +43,9 @@ export default function SubscribeForm() {
             </button>
           </div>
           <label className="footer-subscribe-checkbox">
-            <input type="checkbox" name="subscribe" defaultChecked required />
-            I want to subscribe to your mailing list.
+            <input type="checkbox" name="subscribe" required />
+            I want to subscribe to your mailing list and agree to our{" "}
+            <Link href="/privacy-policy/">Privacy Policy</Link>.
           </label>
           {status === "error" && <p className="footer-subscribe-error">Something went wrong — please try again.</p>}
         </form>

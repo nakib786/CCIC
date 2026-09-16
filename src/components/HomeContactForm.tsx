@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import type { ContactFormField } from "@/lib/wix";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -72,6 +73,10 @@ export default function HomeContactForm({
             )
           )}
           <div className="col-12">
+            <p className="text small mb-15">
+              By submitting this form, you agree to our{" "}
+              <Link href="/privacy-policy/">Privacy Policy</Link>.
+            </p>
             <button type="submit" className="theme-btn btn-style-four" disabled={status === "sending"}>
               <span className="btn-arrow-left"><i className="fa-solid fa-arrow-right"></i></span>
               <span className="btn-title">{status === "sending" ? "Sending…" : status === "sent" ? "Sent — Jazakum Allahu Khairan!" : "Send Message "}</span>

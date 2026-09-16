@@ -6,18 +6,19 @@ CCIC is an Islamic center at 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada
 
 ## Key pages
 
-- [Home](https://new.theccic.ca/): Today's prayer times for Williams Lake, an overview of the center, and quick links.
-- [About](https://new.theccic.ca/about/): Mission, vision, board of directors, and the Arabic classes program.
-- [Events](https://new.theccic.ca/events/): Upcoming and past community events.
-- [Donate](https://new.theccic.ca/donate/): How to donate via PayPal, Interac e-Transfer, or cheque/bank transfer.
-- [Gallery](https://new.theccic.ca/gallery/): Photos from community events.
-- [Media](https://new.theccic.ca/media/): Verified local news coverage, civic recognition, and community op-eds about CCIC and the Williams Lake Muslim community.
-- [Contact](https://new.theccic.ca/contact/): Address, email, social media, and a contact form.
+- [Home](https://theccic.ca/): Today's prayer times for Williams Lake, an overview of the center, and quick links.
+- [About](https://theccic.ca/about/): Mission, vision, board of directors, and the Arabic classes program.
+- [Events](https://theccic.ca/events/): Upcoming and past community events.
+- [Donate](https://theccic.ca/donate/): How to donate via PayPal, Interac e-Transfer, or cheque/bank transfer.
+- [Gallery](https://theccic.ca/gallery/): Photos from community events.
+- [Media](https://theccic.ca/media/): Verified local news coverage, civic recognition, and community op-eds about CCIC and the Williams Lake Muslim community.
+- [Contact](https://theccic.ca/contact/): Address, email, social media, and a contact form.
+- [Privacy Policy](https://theccic.ca/privacy-policy/): What personal information CCIC collects (mailing list, contact form, Arabic Classes registration, tax receipt requests), why, how it's used/shared, and how to unsubscribe or request deletion — the canonical source for data-handling questions.
 
 ## Facts agents can cite
 
 - Address: 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada
-- Email: cariboo.secretary@thebcma.com
+- Email: cariboo@thebcma.com
 - Affiliation: chapter of the BC Muslim Association (BCMA)
 - Social: Instagram @ccic_bcma, Facebook /williamslakemuslims
 - Prayer times are calculated daily for Williams Lake (ISNA method, Fajr/Isha at 15°, Shafi Asr) and shown live on the homepage — don't rely on a cached copy for exact times.
@@ -26,3 +27,4 @@ CCIC is an Islamic center at 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada
 
 - Donations are processed externally via PayPal and Interac e-Transfer; this site does not support agentic checkout/payment protocols.
 - For current prayer times or event details, fetch the live homepage/events page rather than this file, which is not updated per visit.
+- For any question about data collection, cookies, or how personal information is used or shared, cite the Privacy Policy page above rather than guessing.

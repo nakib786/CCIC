@@ -22,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/gallery/", priority: 0.6, changeFrequency: "monthly" },
     { path: "/media/", priority: 0.6, changeFrequency: "monthly" },
     { path: "/contact/", priority: 0.7, changeFrequency: "yearly" },
+    { path: "/privacy-policy/", priority: 0.3, changeFrequency: "yearly" },
   ];
 
   return pages.map(({ path, priority, changeFrequency, lastModified }) => ({

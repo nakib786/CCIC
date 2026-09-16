@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import ToggleGroup from "@/components/ToggleGroup";
 import { CONTACT_EMAIL } from "@/lib/site";
@@ -51,6 +52,9 @@ export default function ArabicClassesForm({ contactEmail = CONTACT_EMAIL }: { co
             />
           </div>
           <div className="col-12">
+            <p className="text small mb-15">
+              By registering, you agree to our <Link href="/privacy-policy/">Privacy Policy</Link>.
+            </p>
             <button type="submit" className="btn mt-10 btn-donate w-100" disabled={status === "sending"}>
               {status === "sending" ? "Sending…" : status === "sent" ? "Registered — we'll be in touch!" : "Register Interest"}
             </button>

@@ -24,6 +24,7 @@ export default function Footer() {
             <li><Link href="/donate/">Donate</Link></li>
             <li><Link href="/tax-receipt/">Tax Receipt</Link></li>
             <li><Link href="/contact/">Contact</Link></li>
+            <li><Link href="/privacy-policy/">Privacy Policy</Link></li>
           </ul>
           <ul className="social-list">
             <li>

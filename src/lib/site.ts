@@ -1,6 +1,6 @@
 // Single source of truth for site identity — used by metadata, robots.ts,
 // sitemap.ts, and JSON-LD structured data so they can't drift out of sync.
-export const SITE_URL = "https://new.theccic.ca";
+export const SITE_URL = "https://theccic.ca";
 export const SITE_NAME = "Central Cariboo Islamic Center";
 export const SITE_DESCRIPTION =
   "Central Cariboo Islamic Center (CCIC), a chapter of the BC Muslim Association, serving the Muslim community of Williams Lake, BC with prayers, education and community programs.";
