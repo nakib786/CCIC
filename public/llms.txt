@@ -6,14 +6,14 @@ CCIC is an Islamic center at 1000 Huckvale Pl, Williams Lake, BC V2G 4L2, Canada
 
 ## Key pages
 
-- [Home](https://theccic.ca/): Today's prayer times for Williams Lake, an overview of the center, and quick links.
-- [About](https://theccic.ca/about/): Mission, vision, board of directors, and the Arabic classes program.
-- [Events](https://theccic.ca/events/): Upcoming and past community events.
-- [Donate](https://theccic.ca/donate/): How to donate via PayPal, Interac e-Transfer, or cheque/bank transfer.
-- [Gallery](https://theccic.ca/gallery/): Photos from community events.
-- [Media](https://theccic.ca/media/): Verified local news coverage, civic recognition, and community op-eds about CCIC and the Williams Lake Muslim community.
-- [Contact](https://theccic.ca/contact/): Address, email, social media, and a contact form.
-- [Privacy Policy](https://theccic.ca/privacy-policy/): What personal information CCIC collects (mailing list, contact form, Arabic Classes registration, tax receipt requests), why, how it's used/shared, and how to unsubscribe or request deletion — the canonical source for data-handling questions.
+- [Home](https://new.theccic.ca/): Today's prayer times for Williams Lake, an overview of the center, and quick links.
+- [About](https://new.theccic.ca/about/): Mission, vision, board of directors, and the Arabic classes program.
+- [Events](https://new.theccic.ca/events/): Upcoming and past community events.
+- [Donate](https://new.theccic.ca/donate/): How to donate via PayPal, Interac e-Transfer, or cheque/bank transfer.
+- [Gallery](https://new.theccic.ca/gallery/): Photos from community events.
+- [Media](https://new.theccic.ca/media/): Verified local news coverage, civic recognition, and community op-eds about CCIC and the Williams Lake Muslim community.
+- [Contact](https://new.theccic.ca/contact/): Address, email, social media, and a contact form.
+- [Privacy Policy](https://new.theccic.ca/privacy-policy/): What personal information CCIC collects (mailing list, contact form, Arabic Classes registration, tax receipt requests), why, how it's used/shared, and how to unsubscribe or request deletion — the canonical source for data-handling questions.
 
 ## Facts agents can cite
 
