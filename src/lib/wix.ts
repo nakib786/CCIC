@@ -30,6 +30,33 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
+// Thrown by wixFetch on a non-OK response. Every existing caller already
+// treats a thrown Error as an opaque fallback trigger (`.catch(() => ...)`),
+// so this stays a drop-in Error subclass — but callers that need to react to
+// a *specific* failure (e.g. the RSVP route mapping a duplicate-email RSVP to
+// a friendly message) can check `applicationCode` instead of string-parsing
+// message text. Shape per https://dev.wix.com/docs/api-reference/articles/work-with-wix-apis/troubleshooting/about-errors.
+export class WixApiError extends Error {
+  readonly status: number;
+  readonly body: string;
+
+  constructor(status: number, body: string) {
+    super(`Wix API failed: ${status} ${body}`);
+    this.name = "WixApiError";
+    this.status = status;
+    this.body = body;
+  }
+
+  get applicationCode(): string | undefined {
+    try {
+      const parsed = JSON.parse(this.body) as { details?: { applicationError?: { code?: string } } };
+      return parsed.details?.applicationError?.code;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 async function wixFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getAccessToken();
   const res = await fetch(`https://www.wixapis.com${path}`, {
@@ -44,7 +71,7 @@ async function wixFetch<T>(path: string, init?: RequestInit): Promise<T> {
     cache: "no-store",
   });
   if (!res.ok) {
-    throw new Error(`Wix API ${path} failed: ${res.status} ${await res.text()}`);
+    throw new WixApiError(res.status, await res.text());
   }
   return res.json() as Promise<T>;
 }
@@ -61,6 +88,88 @@ export function wixImageUrl(wixImageUri: string | undefined): string | null {
   if (!match) return null;
   return `https://static.wixstatic.com/media/${match[1]}`;
 }
+
+// Wix Events supports 4 registration types (Registration.type): RSVP,
+// TICKETING, EXTERNAL, and NONE. This site implements the RSVP flow
+// end-to-end (see createRsvp below) — TICKETING and EXTERNAL events link out
+// to the Wix-hosted event page instead of reimplementing Wix's
+// checkout/payment flow, which is a separate API surface entirely.
+export type RsvpResponseType = "YES_ONLY" | "YES_AND_NO";
+
+export type EventRegistrationStatus =
+  | "UNKNOWN_REGISTRATION_STATUS"
+  | "CLOSED_AUTOMATICALLY"
+  | "CLOSED_MANUALLY"
+  | "OPEN_RSVP"
+  | "OPEN_RSVP_WAITLIST_ONLY"
+  | "OPEN_TICKETS"
+  | "OPEN_EXTERNAL"
+  | "SCHEDULED_RSVP";
+
+export type EventRegistration = {
+  type: "RSVP" | "TICKETING" | "EXTERNAL" | "NONE";
+  status: EventRegistrationStatus;
+  initialType: "RSVP" | "TICKETING";
+  rsvp?: {
+    responseType: RsvpResponseType;
+    limit?: number;
+    waitlistEnabled?: boolean;
+    startDate?: string;
+    endDate?: string;
+  };
+  external?: { url?: string };
+};
+
+// Mirrors wix.events.form.Input — the field(s) inside one form control. Most
+// controls have exactly 1 input; GUEST_CONTROL has 2 (a NUMBER guest count +
+// a TEXT_ARRAY of guest names) and ADDRESS_FULL can have several, one per
+// address line (see additionalLabels).
+export type RsvpFormInput = {
+  name: string;
+  label: string;
+  mandatory: boolean;
+  type: "TEXT" | "NUMBER" | "TEXT_ARRAY" | "DATE_TIME" | "ADDRESS";
+  options?: string[];
+  maxLength?: number;
+  maxSize?: number;
+  additionalLabels?: Record<string, string>;
+};
+
+export type RsvpFormControl = {
+  id: string;
+  type:
+    | "INPUT"
+    | "TEXTAREA"
+    | "DROPDOWN"
+    | "RADIO"
+    | "CHECKBOX"
+    | "NAME"
+    | "GUEST_CONTROL"
+    | "ADDRESS_SHORT"
+    | "ADDRESS_FULL"
+    | "DATE";
+  system: boolean;
+  orderIndex: number;
+  inputs: RsvpFormInput[];
+  deleted?: boolean;
+};
+
+// Customizable copy from the Wix dashboard (Events > Registration Form >
+// Messages) — rendering these instead of hardcoded strings keeps the site in
+// sync with whatever the board sets up in Wix, same as getContactFormFields.
+export type RsvpFormMessages = {
+  rsvpYesOption?: string;
+  rsvpNoOption?: string;
+  submitActionLabel?: string;
+  positiveMessages?: { title?: string; confirmation?: { title?: string; message?: string } };
+  waitlistMessages?: { title?: string; confirmation?: { title?: string; message?: string } };
+  negativeMessages?: { title?: string; confirmation?: { title?: string } };
+};
+
+export type RsvpForm = {
+  controls: RsvpFormControl[];
+  messages?: { rsvp?: RsvpFormMessages; registrationClosed?: { message?: string } };
+};
 
 export type WixEvent = {
   id: string;
@@ -79,6 +188,9 @@ export type WixEvent = {
     endDate?: string;
   };
   eventPageUrl?: { base: string; path: string };
+  // Only present when fetched with fields: ["REGISTRATION"] / ["FORM"].
+  registration?: EventRegistration;
+  form?: RsvpForm;
 };
 
 export async function getEvents(): Promise<WixEvent[]> {
@@ -86,11 +198,33 @@ export async function getEvents(): Promise<WixEvent[]> {
     method: "POST",
     body: JSON.stringify({
       query: { filter: { status: { $ne: "CANCELED" } }, paging: { limit: 50 } },
-      fields: ["DETAILS", "TEXTS", "URLS"],
+      // REGISTRATION is cheap (no per-event extra round trip, it's returned
+      // inline by Query Events) and lets the list page show the right CTA
+      // (RSVP / Get Tickets / Sold Out) without a detail-page fetch.
+      fields: ["DETAILS", "TEXTS", "URLS", "REGISTRATION"],
       includeDrafts: false,
     }),
   });
   return data.events ?? [];
+}
+
+/**
+ * Retrieves a single event with its full registration + form definition —
+ * for the event detail/RSVP page. Unlike getEvents(), this always includes
+ * FORM, which is too expensive to request for every event in a list.
+ */
+export async function getEventBySlug(slug: string): Promise<WixEvent | null> {
+  const fields = ["DETAILS", "TEXTS", "URLS", "REGISTRATION", "FORM"];
+  const query = fields.map((f) => `fields=${f}`).join("&");
+  try {
+    const data = await wixFetch<{ event: WixEvent }>(`/events/v3/events/slug/${encodeURIComponent(slug)}?${query}`);
+    return data.event ?? null;
+  } catch (err) {
+    if (err instanceof WixApiError && (err.status === 404 || err.applicationCode === "EVENT_NOT_FOUND")) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 export type BoardMember = {
@@ -390,4 +524,49 @@ export async function submitSubscriber(email: string): Promise<void> {
       },
     }),
   });
+}
+
+// ---- Event RSVPs -----------------------------------------------------------
+
+export type RsvpInputValue = { inputName: string; value?: string; values?: string[] };
+
+export type CreateRsvpInput = {
+  eventId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: "YES" | "NO" | "WAITLIST";
+  // Every control the visitor filled in, keyed by the event's own form field
+  // names (see RsvpForm/getEventBySlug) — echoes firstName/lastName/email too,
+  // per the Create RSVP API's documented request shape.
+  inputValues: RsvpInputValue[];
+  // Only send this when the event's form has a GUEST_CONTROL — omit entirely
+  // for events that don't support additional guests.
+  additionalGuestDetails?: { guestCount: number; guestNames?: string[] };
+};
+
+export type CreateRsvpResult = { id: string; status: "YES" | "NO" | "WAITLIST"; totalGuests: number };
+
+/**
+ * Submits an RSVP for an event through the real Wix Events "RSVP & Tickets"
+ * app — it lands in the site's guest list exactly as if the guest had RSVP'd
+ * on a Wix-hosted event page, and triggers Wix's own guest confirmation email
+ * and daily new-guest summary email to the site's business address.
+ */
+export async function createRsvp(input: CreateRsvpInput): Promise<CreateRsvpResult> {
+  const data = await wixFetch<{ rsvp: CreateRsvpResult }>("/events/v2/rsvps", {
+    method: "POST",
+    body: JSON.stringify({
+      rsvp: {
+        eventId: input.eventId,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        email: input.email,
+        status: input.status,
+        form: { inputValues: input.inputValues },
+        ...(input.additionalGuestDetails ? { additionalGuestDetails: input.additionalGuestDetails } : {}),
+      },
+    }),
+  });
+  return data.rsvp;
 }

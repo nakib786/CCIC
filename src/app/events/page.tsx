@@ -6,6 +6,20 @@ import { FacebookIcon, InstagramIcon } from "@/components/SocialIcons";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getEvents, type WixEvent } from "@/lib/wix";
 
+// Label for the list-page CTA link — mirrors the same branching EventRsvpForm
+// uses on the detail page, so a visitor sees a consistent promise here before
+// clicking through (e.g. never "RSVP Now" for a sold-out/closed event).
+function rsvpCta(ev: WixEvent): string | null {
+  const reg = ev.registration;
+  if (!reg || reg.type === "NONE") return null;
+  if (reg.type === "TICKETING") return "Get Tickets";
+  if (reg.type === "EXTERNAL") return "Register";
+  if (reg.status === "OPEN_RSVP_WAITLIST_ONLY") return "Join Waitlist";
+  if (reg.status === "CLOSED_AUTOMATICALLY" || reg.status === "CLOSED_MANUALLY") return "Registration Closed";
+  if (reg.status === "SCHEDULED_RSVP") return "RSVP Opens Soon";
+  return "RSVP Now";
+}
+
 // Only events with a confirmed date and venue qualify for Event structured
 // data — Google's guidelines say not to mark up TBD events.
 function eventJsonLd(ev: WixEvent) {
@@ -71,7 +85,7 @@ export default async function EventsPage() {
               <i className="fa-regular fa-calendar-days"></i>
               <h3 className="h4 title mb-10">No events scheduled at the moment</h3>
               <p className="text mb-20">
-                We&apos;ll list dated events here as soon as they&apos;re confirmed on our Wix calendar. New announcements
+                We&apos;ll list dated events here as soon as they&apos;re confirmed. New announcements
                 usually go up on social media first — follow along so you don&apos;t miss anything.
               </p>
               <div className="btn-box justify-content-center d-flex flex-wrap gap-2">
@@ -91,9 +105,14 @@ export default async function EventsPage() {
                     <div className="image-box"><div className="image">{ev.mainImage?.url && <Image src={ev.mainImage.url} alt={ev.title} fill sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 33vw" style={{ objectFit: "cover" }} />}</div></div>
                     <div className="content-box">
                       <div className="tag">{ev.dateAndTimeSettings?.formatted?.dateAndTime}</div>
-                      <h3 className="h4 title">{ev.title}</h3>
+                      <h3 className="h4 title"><Link href={`/events/${ev.slug}/`}>{ev.title}</Link></h3>
                       {ev.shortDescription && <p className="text">{ev.shortDescription}</p>}
                       {ev.location?.name && <p className="text">{ev.location.name}</p>}
+                      {rsvpCta(ev) && (
+                        <Link href={`/events/${ev.slug}/`} className="event-card-cta">
+                          {rsvpCta(ev)} <i className="fa-solid fa-arrow-right"></i>
+                        </Link>
+                      )}
                     </div>
                   </div></div>
                 </div>
@@ -118,7 +137,7 @@ export default async function EventsPage() {
                       <div className="image-box"><div className="image">{ev.mainImage?.url && <Image src={ev.mainImage.url} alt={ev.title} fill sizes="(max-width: 767px) 100vw, (max-width: 1199px) 50vw, 25vw" style={{ objectFit: "cover" }} />}</div></div>
                       <div className="content-box">
                         <div className="tag">{ev.dateAndTimeSettings?.formatted?.dateAndTime}</div>
-                        <h3 className="h4 title">{ev.title}</h3>
+                        <h3 className="h4 title"><Link href={`/events/${ev.slug}/`}>{ev.title}</Link></h3>
                         {ev.shortDescription && <p className="text">{ev.shortDescription}</p>}
                       </div>
                     </div>

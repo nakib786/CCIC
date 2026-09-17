@@ -1183,3 +1183,115 @@
   text-underline-offset: 3px;
 }
 .donation-modal-dismiss:hover { color: var(--theme-color2); }
+
+/* ---- Event RSVP pipeline (EventRsvpForm.tsx + events/[slug] detail page):
+   theme.css has no built-in registration-form styling to build on, so this
+   borrows the site's existing white-card treatment (donation-modal above)
+   rather than inventing a new visual language. ---- */
+.event-rsvp-box {
+  background: var(--theme-color-white);
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, .08);
+  padding: 36px 30px;
+}
+.event-rsvp-box .title { margin: 0; }
+.rsvp-limit-note {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 400;
+}
+.rsvp-field-label {
+  color: var(--theme-color2);
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.rsvp-guest-names {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+.rsvp-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rsvp-checkbox-option {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+.rsvp-checkbox-option input { flex: none; }
+.rsvp-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.rsvp-decline-btn {
+  background: none;
+  border: 0;
+  color: var(--text-color);
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rsvp-decline-btn:hover { color: var(--theme-color2); }
+.rsvp-error-text {
+  color: #c0392b;
+  font-size: 14px;
+}
+/* ---- RSVP confirmation state: reuses the .event-rsvp-box shell so the
+   card's height doesn't jump between the form and the "thank you" message. ---- */
+.event-rsvp-box.rsvp-confirmed { text-align: center; }
+.event-rsvp-box.rsvp-confirmed i {
+  color: var(--theme-color3);
+  font-size: 40px;
+  margin-bottom: 14px;
+}
+
+/* ---- Event detail page (events/[slug]/page.tsx) ---- */
+.event-detail-image {
+  aspect-ratio: 16 / 10;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+.event-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.event-detail-meta li {
+  align-items: center;
+  color: var(--theme-color2);
+  display: flex;
+  font-weight: 600;
+  gap: 8px;
+}
+.rsvp-back-link {
+  align-items: center;
+  color: var(--text-color);
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+.rsvp-back-link:hover { color: var(--theme-color2); }
+
+/* ---- Events list cards (events/page.tsx): small RSVP/tickets CTA under an
+   upcoming event's excerpt, previewing the detail page's registration state
+   (RSVP / waitlist / tickets / closed) before a visitor clicks through. ---- */
+.event-card-cta {
+  align-items: center;
+  color: var(--theme-color2);
+  display: inline-flex;
+  font-weight: 600;
+  gap: 8px;
+  margin-top: 6px;
+}
+.event-card-cta:hover { text-decoration: underline; }
