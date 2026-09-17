@@ -44,8 +44,10 @@ export default function SubscribeForm() {
           </div>
           <label className="footer-subscribe-checkbox">
             <input type="checkbox" name="subscribe" required />
-            I want to subscribe to your mailing list and agree to our{" "}
-            <Link href="/privacy-policy/">Privacy Policy</Link>.
+            <span>
+              I want to subscribe to your mailing list and agree to our{" "}
+              <Link href="/privacy-policy/">Privacy Policy</Link>.
+            </span>
           </label>
           {status === "error" && <p className="footer-subscribe-error">Something went wrong — please try again.</p>}
         </form>

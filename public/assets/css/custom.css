@@ -729,9 +729,13 @@
   -webkit-mask-position: center !important;
 }
 /* ---- Footer newsletter subscribe form (mirrors the "Subscribe to get
-   exclusive updates" widget on theccic.ca's footer/contact page) ---- */
+   exclusive updates" widget on theccic.ca's footer/contact page).
+   One unified pill (input + inset CTA) instead of two separate pills —
+   matches the .footer-two .footer-newslatter-widget .email-row / gold
+   .btn-submit pattern this theme already ships elsewhere — so the row
+   never has to flex-wrap onto its own awkward second line. ---- */
 .footer-subscribe {
-  max-width: 420px;
+  max-width: 440px;
   margin: 30px auto 0;
 }
 .footer-subscribe-title {
@@ -741,53 +745,97 @@
 }
 .footer-subscribe-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--theme-color-white-rgb), 0.15);
+  border-radius: 999px;
+  padding: 6px 6px 6px 22px;
+  transition: box-shadow 0.2s ease;
+}
+.footer-subscribe-row:focus-within {
+  box-shadow: 0 0 0 2px rgba(var(--theme-color-white-rgb), 0.5);
 }
 .footer-subscribe-row input[type="email"] {
-  flex: 1 1 220px;
-  height: 50px;
-  padding: 0 20px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 44px;
+  padding: 0;
   border: none;
-  border-radius: 999px;
-  background: rgba(var(--theme-color-white-rgb), 0.2);
+  background: transparent;
   color: var(--theme-color-white);
   font-weight: 500;
+}
+.footer-subscribe-row input[type="email"]:focus {
+  outline: none;
 }
 .footer-subscribe-row input[type="email"]::placeholder {
   color: rgba(var(--theme-color-white-rgb), 0.75);
 }
 .footer-subscribe-row button {
   flex: 0 0 auto;
-  height: 50px;
-  padding: 0 24px;
+  height: 44px;
+  padding: 0 22px;
   border: none;
   border-radius: 999px;
-  background: var(--theme-color-white);
-  color: var(--theme-color3);
+  background: var(--theme-color1);
+  color: var(--theme-color-dark);
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 .footer-subscribe-row button:hover:not(:disabled) {
-  background: var(--theme-color1);
+  background: var(--theme-color-white);
 }
 .footer-subscribe-row button:disabled {
   opacity: 0.7;
   cursor: default;
 }
+@media (max-width: 480px) {
+  .footer-subscribe-row {
+    flex-wrap: wrap;
+    border-radius: 24px;
+    padding: 14px;
+  }
+  .footer-subscribe-row input[type="email"] {
+    flex-basis: 100%;
+  }
+  .footer-subscribe-row button {
+    flex-basis: 100%;
+  }
+}
+/* Checkbox + fine-print: the label's text/link/text used to be three
+   separate flex children (checkbox, text, <Link>, text), so a wrap
+   fragmented the sentence instead of flowing it — wrapping all the
+   copy in one <span> (see SubscribeForm.tsx) makes it a single flex
+   item that wraps like a normal paragraph next to the checkbox. */
 .footer-subscribe-checkbox {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
   color: rgba(var(--theme-color-white-rgb), 0.85);
   font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
   cursor: pointer;
 }
+.footer-subscribe-checkbox input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  margin-top: 3px;
+  accent-color: var(--theme-color1);
+}
+.footer-subscribe-checkbox a {
+  color: var(--theme-color-white);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .footer-subscribe-thanks {
+  background: rgba(var(--theme-color-white-rgb), 0.15);
+  border-radius: 999px;
+  padding: 14px 22px;
   color: var(--theme-color-white);
   font-weight: 600;
 }
